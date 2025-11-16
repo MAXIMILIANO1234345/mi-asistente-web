@@ -4,207 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente de Blender (AI)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --color-bg: #1a1a1e;
-            --color-container-bg: #25252d;
-            --color-chat-bg: #1e1e24;
-            --color-accent: #007bff;
-            --color-accent-hover: #0056b3;
-            --color-text-primary: #f0f0f0;
-            --color-text-secondary: #a0a0a0;
-            --color-border: #3a3a4a;
-            --color-shadow: rgba(0, 0, 0, 0.4);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: var(--color-bg);
-            color: var(--color-text-primary);
-            text-align: center;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-y: auto;
-        }
-
-        .container {
-            background-color: var(--color-container-bg);
-            padding: 30px 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px var(--color-shadow);
-            max-width: 800px;
-            width: 90%;
-            margin: 20px auto;
-            border: 1px solid var(--color-border);
-        }
-
-        .logo-container {
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .logo-container img {
-            max-width: 100px;
-            height: auto;
-            /* Usando un placeholder de logo de Blender */
-            content: url('https://placehold.co/100x100/25252d/007bff?text=B');
-            border-radius: 50%;
-            border: 2px solid var(--color-accent);
-        }
-
-        h1 {
-            color: var(--color-text-primary);
-            font-size: 2.0em;
-            margin-bottom: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .chat-window {
-            background-color: var(--color-chat-bg);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--color-border);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-            text-align: left;
-        }
-
-        .message {
-            margin-bottom: 12px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .message strong {
-            color: var(--color-accent);
-            font-weight: 600;
-        }
-
-        .user-message {
-            color: var(--color-text-primary);
-        }
-
-        .ai-message {
-            color: var(--color-text-primary);
-        }
-        
-        /* Estilos para la respuesta estructurada de la IA */
-        .ai-message p {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-        .ai-message ul {
-            margin-left: 20px;
-            padding-left: 0;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-        .ai-message li {
-            margin-bottom: 8px;
-        }
-        .ai-message .fuente {
-            font-size: 0.8em;
-            opacity: 0.7;
-            margin-top: 15px;
-            border-top: 1px solid var(--color-border);
-            padding-top: 8px;
-        }
-
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            background-color: var(--color-chat-bg);
-            color: var(--color-text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 1em;
-            resize: vertical;
-            min-height: 50px;
-            box-sizing: border-box; 
-        }
-
-        textarea::placeholder {
-            color: var(--color-text-secondary);
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--color-accent);
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-        }
-
-        button {
-            background-color: var(--color-accent);
-            color: var(--color-text-primary);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 10px var(--color-shadow);
-        }
-
-        button:hover {
-            background-color: var(--color-accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px var(--color-shadow);
-        }
-
-        button:disabled {
-            background-color: #555;
-            color: #999;
-            cursor: not-allowed;
-            transform: translateY(0);
-        }
-
-        .loading-spinner {
-            border: 4px solid var(--color-border);
-            border-top: 4px solid var(--color-accent);
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-            display: none; 
-        }
-
-        .loading-spinner.active {
-            display: block;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 600px) {
-            .container { padding: 20px 25px; margin: 10px auto; width: 95%; }
-            h1 { font-size: 1.8em; }
-            textarea { font-size: 0.9em; min-height: 40px; }
-            button { font-size: 1em; padding: 10px 20px; }
-        }
-    </style>
-</head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    </head>
 <body>
     <div class="container">
         <div class="logo-container">
-            <!-- He reemplazado la <img> vacía por un placeholder -->
             <img src="https" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
@@ -227,8 +32,6 @@
         // URL del API (Asegúrate de que sea la correcta para tu deploy)
         const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
-        // Esta función ya no es necesaria para el renderizado principal,
-        // pero la dejamos por si la IA la usa en el futuro.
         function parsearRespuesta(texto) {
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
             return texto.replace(regex, (match, url) => {
@@ -246,12 +49,10 @@
             }
         });
 
-        // --- ¡¡¡FUNCIÓN sendMessage ACTUALIZADA!!! ---
         async function sendMessage() {
             const question = userQuestionInput.value.trim();
             if (!question) return;
 
-            // Muestra el mensaje del usuario
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
             const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -274,42 +75,31 @@
                     throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
                 }
 
-                // 'data' es el JSON: {respuesta_principal, puntos_clave, fuente}
                 const data = await response.json(); 
                 
-                // --- ¡NUEVA LÓGICA DE RENDERIZADO! ---
-                
-                // 1. Crear el div contenedor del mensaje
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
 
-                // 2. Construir el HTML interno
                 let htmlRespuesta = '<strong>AI:</strong>';
 
-                // 3. Añadir el párrafo principal (sanitizando saltos de línea)
                 if (data.respuesta_principal) {
-                    // Usamos la función parsearRespuesta aquí por si la IA incluye imágenes
                     const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
                     htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
                 }
 
-                // 4. Añadir la lista de puntos clave
                 if (data.puntos_clave && data.puntos_clave.length > 0) {
                     htmlRespuesta += '<ul>';
                     for (const punto of data.puntos_clave) {
-                        // Sanitizamos y parseamos la descripción de cada punto
                         const descripcion = parsearRespuesta(punto.descripcion.replace(/\n/g, '<br>'));
                         htmlRespuesta += `<li><strong>${punto.titulo}:</strong> ${descripcion}</li>`;
                     }
                     htmlRespuesta += '</ul>';
                 }
 
-                // 5. Añadir la fuente
                 if (data.fuente) {
                     htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
                 }
                 
-                // 6. Asignar el HTML construido al div
                 aiMessageDiv.innerHTML = htmlRespuesta;
                 chatWindow.appendChild(aiMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -318,7 +108,6 @@
                 console.error("Error al obtener respuesta de la IA:", error);
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message ai-message';
-                // Mostramos el error que nos dio el frontend
                 errorMessageDiv.innerHTML = `<strong>AI:</strong> Lo siento, hubo un error al procesar tu solicitud. (${error.message})`;
                 chatWindow.appendChild(errorMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
