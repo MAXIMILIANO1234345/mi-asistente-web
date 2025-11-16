@@ -1,0 +1,271 @@
+/* Definición de variables CSS */
+:root {
+    --color-bg: #121216; /* Fondo más oscuro */
+    --color-container-bg: #1e1e24; /* Contenedor principal */
+    --color-chat-bg: #282830; /* Fondo de la ventana de chat */
+    --color-accent: #ff7a00; /* Color primario de Blender (Naranja) */
+    --color-accent-hover: #e06c00;
+    --color-text-primary: #f0f0f0;
+    --color-text-secondary: #b0b0b0;
+    --color-border: #3a3a4a;
+    --color-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* Base */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-y: auto;
+}
+
+/* Contenedor Principal */
+.container {
+    background-color: var(--color-container-bg);
+    padding: 30px 40px;
+    border-radius: 18px; /* Borde más suave */
+    box-shadow: 0 12px 40px var(--color-shadow);
+    max-width: 800px;
+    width: 90%;
+    margin: 20px auto;
+    border: 1px solid var(--color-border);
+    transition: transform 0.3s ease;
+}
+
+.logo-container {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.logo-container img {
+    max-width: 100px;
+    height: auto;
+    content: url('https://placehold.co/100x100/1e1e24/ff7a00?text=Blender'); /* Placeholder actualizado */
+    border-radius: 50%;
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 122, 0, 0.5); /* Resplandor sutil */
+}
+
+h1 {
+    color: var(--color-text-primary);
+    font-size: 2.2em;
+    margin-bottom: 25px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Ventana de Chat */
+.chat-window {
+    background-color: var(--color-chat-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    max-height: 450px; /* Un poco más alto */
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.4);
+    text-align: left;
+}
+
+/* Estilo de los Mensajes */
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 0.95em;
+}
+
+.message strong {
+    font-weight: 700;
+    margin-right: 5px;
+}
+
+/* Mensaje del Usuario */
+.user-message {
+    background-color: #33333a; /* Fondo para el mensaje de usuario */
+    border-left: 4px solid var(--color-text-secondary);
+    color: var(--color-text-primary);
+    margin-left: 20%; /* Alineación a la derecha */
+}
+.user-message strong {
+    color: var(--color-text-secondary);
+}
+
+/* Mensaje de la IA */
+.ai-message {
+    background-color: var(--color-container-bg); /* Fondo más claro que el chat */
+    border-left: 4px solid var(--color-accent);
+    color: var(--color-text-primary);
+    margin-right: 20%; /* Alineación a la izquierda */
+}
+.ai-message strong {
+    color: var(--color-accent);
+}
+
+/* Estilos internos de la respuesta de la IA */
+.ai-message p {
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+.ai-message ul {
+    margin-left: 25px;
+    padding-left: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    list-style-type: square; /* Estilo de lista más visible */
+    color: var(--color-accent);
+}
+.ai-message li {
+    margin-bottom: 8px;
+    color: var(--color-text-primary); /* El texto de la lista debe ser blanco */
+}
+.ai-message li strong {
+    color: var(--color-accent);
+}
+.ai-message .fuente {
+    font-size: 0.75em;
+    opacity: 0.7;
+    margin-top: 15px;
+    border-top: 1px dashed var(--color-border); /* Separador punteado */
+    padding-top: 8px;
+}
+.chat-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 10px;
+    border: 1px solid var(--color-border);
+    display: block;
+}
+
+/* Campo de Texto */
+textarea {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background-color: #1a1a1e; /* Fondo más oscuro para el input */
+    color: var(--color-text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1em;
+    resize: none; /* Mejor no permitir redimensionar */
+    min-height: 60px;
+    box-sizing: border-box; 
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+textarea::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 10px rgba(255, 122, 0, 0.5);
+    background-color: #1e1e24;
+}
+
+/* Botón de Enviar */
+button {
+    background-color: var(--color-accent);
+    color: var(--color-bg); /* Texto oscuro sobre el naranja */
+    border: none;
+    padding: 14px 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.15em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 6px 15px rgba(255, 122, 0, 0.4);
+}
+
+button:hover {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 122, 0, 0.6);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(255, 122, 0, 0.4);
+}
+
+button:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Spinner de Carga */
+.loading-spinner {
+    border: 4px solid var(--color-border);
+    border-top: 4px solid var(--color-accent);
+    border-radius: 50%;
+    width: 30px; /* Un poco más grande */
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 15px auto;
+    display: none; 
+}
+
+.loading-spinner.active {
+    display: block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Media Queries para Responsive Design */
+@media (max-width: 600px) {
+    .container { 
+        padding: 20px 20px; 
+        margin: 10px auto; 
+        width: 95%; 
+        border-radius: 12px;
+    }
+    h1 { 
+        font-size: 1.6em; 
+    }
+    .chat-window {
+        max-height: 350px;
+        padding: 15px;
+    }
+    .message {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+    .user-message, .ai-message {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    textarea { 
+        font-size: 0.9em; 
+        min-height: 50px; 
+        padding: 10px;
+    }
+    button { 
+        font-size: 1em; 
+        padding: 10px 20px; 
+    }
+}
