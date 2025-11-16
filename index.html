@@ -78,7 +78,6 @@
         .message {
             margin-bottom: 12px;
             line-height: 1.6;
-            /* Permite que el texto y las imágenes se ajusten */
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
@@ -96,7 +95,7 @@
             color: var(--color-text-primary);
         }
         
-        /* --- ¡NUEVO ESTILO PARA IMÁGENES! --- */
+        /* --- ESTILO PARA IMÁGENES EN EL CHAT --- */
         .chat-image {
             max-width: 90%;
             border-radius: 8px;
@@ -214,12 +213,13 @@
         // Ya incluye tu URL correcta y el endpoint /preguntar
         const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
-        // --- ¡¡¡NUEVA FUNCIÓN PARA MOSTRAR IMÁGENES!!! ---
+        // --- ¡NUEVA FUNCIÓN PARA MOSTRAR IMÁGENES! ---
         function parsearRespuesta(texto) {
             // Esta función busca URLs de imágenes en el texto
             // y las convierte en etiquetas <img> de HTML.
             
-            // La expresión regular busca: [Imagen relevante disponible en: (URL)]
+            // La expresión regular busca: [Texto] (URL)
+            // O: [Imagen relevante disponible en: (URL)]
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
             
             // Reemplaza el texto con HTML
@@ -244,7 +244,7 @@
 
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${question}`; // Usamos innerHTML por seguridad
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Sanitizar input
             chatWindow.appendChild(userMessageDiv);
             chatWindow.scrollTop = chatWindow.scrollHeight; 
 
@@ -265,7 +265,7 @@
 
                 const data = await response.json();
                 
-                // --- ¡¡¡CAMBIO CLAVE!!! ---
+                // --- ¡CAMBIO CLAVE! ---
                 // Ya no usamos .innerText, usamos la nueva función
                 const respuestaHtml = parsearRespuesta(data.respuesta);
 
@@ -291,4 +291,3 @@
     </script>
 </body>
 </html>
-
