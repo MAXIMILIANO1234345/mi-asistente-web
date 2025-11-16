@@ -209,8 +209,8 @@
         const sendButton = document.getElementById('sendButton');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // --- ¡¡¡ESTA ES LA URL CORREGIDA!!! ---
-        // Ya incluye tu URL correcta y el endpoint /preguntar
+        // --- ¡¡¡ESTA ES LA LÍNEA CORREGIDA!!! ---
+        // Añadimos el "/preguntar" al final de tu URL de Render
         const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
         // --- ¡NUEVA FUNCIÓN PARA MOSTRAR IMÁGENES! ---
@@ -244,7 +244,9 @@
 
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${question.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Sanitizar input
+            // Sanitizamos el input del usuario para evitar que inyecte HTML
+            const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
             chatWindow.appendChild(userMessageDiv);
             chatWindow.scrollTop = chatWindow.scrollHeight; 
 
