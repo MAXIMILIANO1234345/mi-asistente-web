@@ -53,6 +53,10 @@
         .logo-container img {
             max-width: 100px;
             height: auto;
+            /* Usando un placeholder de logo de Blender */
+            content: url('https://placehold.co/100x100/25252d/007bff?text=B');
+            border-radius: 50%;
+            border: 2px solid var(--color-accent);
         }
 
         h1 {
@@ -95,18 +99,28 @@
             color: var(--color-text-primary);
         }
         
-        /* --- ESTILO PARA IMÁGENES EN EL CHAT --- */
-        .chat-image {
-            max-width: 90%;
-            border-radius: 8px;
-            border: 1px solid var(--color-border);
+        /* Estilos para la respuesta estructurada de la IA */
+        .ai-message p {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .ai-message ul {
+            margin-left: 20px;
+            padding-left: 0;
             margin-top: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
+            margin-bottom: 10px;
         }
-        .chat-image:hover {
-            transform: scale(1.02);
+        .ai-message li {
+            margin-bottom: 8px;
         }
+        .ai-message .fuente {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 15px;
+            border-top: 1px solid var(--color-border);
+            padding-top: 8px;
+        }
+
 
         textarea {
             width: 100%;
@@ -190,6 +204,7 @@
 <body>
     <div class="container">
         <div class="logo-container">
+            <!-- He reemplazado la <img> vacía por un placeholder -->
             <img src="https" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
@@ -209,20 +224,13 @@
         const sendButton = document.getElementById('sendButton');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // --- ¡¡¡ESTA ES LA LÍNEA CORREGIDA!!! ---
-        // Añadimos el "/preguntar" al final de tu URL de Render
+        // URL del API (Asegúrate de que sea la correcta para tu deploy)
         const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
-        // --- ¡NUEVA FUNCIÓN PARA MOSTRAR IMÁGENES! ---
+        // Esta función ya no es necesaria para el renderizado principal,
+        // pero la dejamos por si la IA la usa en el futuro.
         function parsearRespuesta(texto) {
-            // Esta función busca URLs de imágenes en el texto
-            // y las convierte en etiquetas <img> de HTML.
-            
-            // La expresión regular busca: [Texto] (URL)
-            // O: [Imagen relevante disponible en: (URL)]
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
-            
-            // Reemplaza el texto con HTML
             return texto.replace(regex, (match, url) => {
                 return `<br><a href="${url}" target="_blank" title="Haz clic para ver la imagen completa">
                             <img src="${url}" alt="Imagen del Manual" class="chat-image">
@@ -238,13 +246,14 @@
             }
         });
 
+        // --- ¡¡¡FUNCIÓN sendMessage ACTUALIZADA!!! ---
         async function sendMessage() {
             const question = userQuestionInput.value.trim();
             if (!question) return;
 
+            // Muestra el mensaje del usuario
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            // Sanitizamos el input del usuario para evitar que inyecte HTML
             const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
             chatWindow.appendChild(userMessageDiv);
@@ -265,15 +274,43 @@
                     throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json();
+                // 'data' es el JSON: {respuesta_principal, puntos_clave, fuente}
+                const data = await response.json(); 
                 
-                // --- ¡CAMBIO CLAVE! ---
-                // Ya no usamos .innerText, usamos la nueva función
-                const respuestaHtml = parsearRespuesta(data.respuesta);
-
+                // --- ¡NUEVA LÓGICA DE RENDERIZADO! ---
+                
+                // 1. Crear el div contenedor del mensaje
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
-                aiMessageDiv.innerHTML = `<strong>AI:</strong> ${respuestaHtml}`; // Usamos innerHTML
+
+                // 2. Construir el HTML interno
+                let htmlRespuesta = '<strong>AI:</strong>';
+
+                // 3. Añadir el párrafo principal (sanitizando saltos de línea)
+                if (data.respuesta_principal) {
+                    // Usamos la función parsearRespuesta aquí por si la IA incluye imágenes
+                    const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
+                    htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
+                }
+
+                // 4. Añadir la lista de puntos clave
+                if (data.puntos_clave && data.puntos_clave.length > 0) {
+                    htmlRespuesta += '<ul>';
+                    for (const punto of data.puntos_clave) {
+                        // Sanitizamos y parseamos la descripción de cada punto
+                        const descripcion = parsearRespuesta(punto.descripcion.replace(/\n/g, '<br>'));
+                        htmlRespuesta += `<li><strong>${punto.titulo}:</strong> ${descripcion}</li>`;
+                    }
+                    htmlRespuesta += '</ul>';
+                }
+
+                // 5. Añadir la fuente
+                if (data.fuente) {
+                    htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
+                }
+                
+                // 6. Asignar el HTML construido al div
+                aiMessageDiv.innerHTML = htmlRespuesta;
                 chatWindow.appendChild(aiMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
@@ -281,6 +318,7 @@
                 console.error("Error al obtener respuesta de la IA:", error);
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message ai-message';
+                // Mostramos el error que nos dio el frontend
                 errorMessageDiv.innerHTML = `<strong>AI:</strong> Lo siento, hubo un error al procesar tu solicitud. (${error.message})`;
                 chatWindow.appendChild(errorMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
