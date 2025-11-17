@@ -6,37 +6,44 @@
     <title>Asistente de Blender (AI)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    </head>
+    <!-- El script de Supabase y la lógica JS se mueven al final del <body> -->
+</head>
 <body>
     <div class="container">
         <div class="logo-container">
+            <!-- Usando un placeholder corregido -->
             <img src="https://placehold.co/100x100/1e1e24/ff7a00?text=Blender" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
 
+        <!-- 1. Contenedor de AUTENTICACIÓN (LOGIN/REGISTRO) -->
         <div class="auth-container" id="authContainer">
             <h2>Bienvenido a la Comunidad Educativa</h2>
             
             <button id="toggleRegister">Quiero registrarme como estudiante</button>
 
             <form id="authForm">
-                <input type="email" id="authEmail" placeholder="Correo Electrónico" required>
-                <input type="password" id="authPassword" placeholder="Contraseña" required>
+                <!-- CAMPOS COMUNES (Ahora con atributo NAME) -->
+                <input type="email" id="authEmail" name="authEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="authPassword" name="authPassword" placeholder="Contraseña" required>
 
+                <!-- CAMPOS ADICIONALES PARA EL REGISTRO (Ocultos por defecto) -->
                 <div id="registerFields" style="display: none;">
                     
                     <hr style="margin: 10px 0;">
                     <label>Datos Personales y Contacto</label>
-                    <input type="text" id="authNombreCompleto" placeholder="Nombre Completo">
-                    <input type="text" id="authRegion" placeholder="Región/País">
-                    <input type="text" id="authInstitution" placeholder="Institución Educativa">
-                    <input type="tel" id="authCelular" placeholder="Número de Celular">
-                    <input type="tel" id="authWhatsApp" placeholder="Número de WhatsApp (opcional)">
+                    
+                    <!-- CORRECCIÓN: Se añade el atributo NAME a todos los campos -->
+                    <input type="text" id="authNombreCompleto" name="authNombreCompleto" placeholder="Nombre Completo">
+                    <input type="text" id="authRegion" name="authRegion" placeholder="Región/País">
+                    <input type="text" id="authInstitution" name="authInstitution" placeholder="Institución Educativa">
+                    <input type="tel" id="authCelular" name="authCelular" placeholder="Número de Celular">
+                    <input type="tel" id="authWhatsApp" name="authWhatsApp" placeholder="Número de WhatsApp (opcional)">
 
                     <hr style="margin: 10px 0;">
                     <label>Datos Educativos (Mejora del RAG)</label>
                     
-                    <select id="authTemaInteres">
+                    <select id="authTemaInteres" name="authTemaInteres">
                         <option value="">Tema de Interés Principal...</option>
                         <option value="Modelado_3D">Modelado 3D (Blender)</option>
                         <option value="Fisica">Física Avanzada</option>
@@ -44,7 +51,7 @@
                         <option value="Otros">Otros</option>
                     </select>
 
-                    <select id="authNivelEducativo">
+                    <select id="authNivelEducativo" name="authNivelEducativo">
                         <option value="">Nivel Educativo Actual...</option>
                         <option value="Secundaria">Secundaria</option>
                         <option value="Bachillerato">Bachillerato/Prepa</option>
@@ -55,14 +62,14 @@
                     <hr style="margin: 10px 0;">
                     <label>Contexto Tecnológico (Brecha Digital)</label>
                     
-                    <select id="authDispositivo">
+                    <select id="authDispositivo" name="authDispositivo">
                         <option value="">Dispositivo Principal...</option>
                         <option value="Smartphone">Smartphone</option>
                         <option value="Laptop_Antigua">Laptop (Más de 5 años)</option>
                         <option value="PC_Escritorio">PC de Escritorio</option>
                     </select>
 
-                    <select id="authVelocidadInternet">
+                    <select id="authVelocidadInternet" name="authVelocidadInternet">
                         <option value="">Velocidad de Internet...</option>
                         <option value="Lenta_Movil">Lenta (Datos Móviles)</option>
                         <option value="Media_ADSL">Media (ADSL/Cable)</option>
@@ -75,6 +82,7 @@
         </div>
 
 
+        <!-- 2. Contenedor de la APLICACIÓN (CHAT) (Oculto por defecto) -->
         <div class="app-container" id="appContainer" style="display: none;">
             <div class="chat-window" id="chatWindow">
                 <div class="message ai-message">
@@ -88,6 +96,7 @@
         </div>
     </div>
 
+    <!-- 🔑 IMPORTANTE: Script de Supabase y la lógica van AQUÍ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
     
     <script>
@@ -127,7 +136,7 @@
         
         let currentSessionId = null; 
 
-        // --- NUEVO: Listado de campos de registro para control dinámico ---
+        // --- Listado de campos de registro para control dinámico ---
         const registrationInputs = [
             authNombreCompletoInput,
             authRegionInput,
