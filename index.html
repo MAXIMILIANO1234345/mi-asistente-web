@@ -6,19 +6,11 @@
     <title>Asistente de Blender (AI)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
-    
-    <script>
-</head>
+    </head>
 <body>
     <div class="container">
         <div class="logo-container">
-            <img src="https" alt="Logo Asistente AI">
+            <img src="https://placehold.co/100x100/1e1e24/ff7a00?text=Blender" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
 
@@ -96,11 +88,13 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
+    
     <script>
-        // 🔑 CONFIGURACIÓN DE SUPABASE (¡REEMPLAZA ESTOS VALORES!)
-        const SUPABASE_URL = 'https://faujkhrypihnaxqvnroc.supabase.co'; 
+        // 🔑 CONFIGURACIÓN DE SUPABASE (¡Tus claves ya están puestas!)
+        const SUPABASE_URL = 'https://faujkhrypihnaxqvnroc.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdWpraHJ5cGlobmF4cXZucm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzM5ODgsImV4cCI6MjA3ODkwOTk4OH0.SR-OBag_SyIJrHwVG2M4MPrZmrb2ByjHjJpagAEAOoE';
-        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
+        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- Elementos de la Interfaz ---
@@ -131,13 +125,12 @@
         const authDispositivoInput = document.getElementById('authDispositivo');
         const authVelocidadInternetInput = document.getElementById('authVelocidadInternet');
         
-        let currentSessionId = null; 
+        let currentSessionId = null; 
 
         // ------------------------------------------------------------------
         // --- FUNCIONES DE SEGURIDAD ---
         // ------------------------------------------------------------------
 
-        // Función de sanitización para prevenir XSS en los inputs de texto
         function sanitizeInput(text) {
             if (!text) return text;
             return text
@@ -166,14 +159,12 @@
         }
         
         async function signUpStudent(email, password) {
-            // 1. Sanitización de datos de texto
             const cleanedNombreCompleto = sanitizeInput(authNombreCompletoInput.value);
             const cleanedRegion = sanitizeInput(authRegionInput.value);
             const cleanedInstitution = sanitizeInput(authInstitutionInput.value);
             const cleanedCelular = sanitizeInput(authCelularInput.value);
             const cleanedWhatsApp = sanitizeInput(authWhatsAppInput.value);
 
-            // 2. Crear la cuenta de usuario en Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: password
@@ -186,7 +177,6 @@
             
             const userId = authData.user.id;
 
-            // 3. Insertar los datos completos y sanitizados en la tabla 'perfiles'
             const { error: profileError } = await supabase
                 .from('perfiles')
                 .insert({
@@ -197,7 +187,7 @@
                     region: cleanedRegion,
                     celular: cleanedCelular,
                     whatsapp: cleanedWhatsApp || null,
-                    es_profesor: false, 
+                    es_profesor: false, 
                     tema_interes: authTemaInteresInput.value,
                     nivel_educativo: authNivelEducativoInput.value,
                     dispositivo_acceso: authDispositivoInput.value,
@@ -231,7 +221,7 @@
 
         async function signOutUser() {
             await supabase.auth.signOut();
-            currentSessionId = null; 
+            currentSessionId = null; 
             checkAuthentication();
             alert('Sesión cerrada.');
         }
@@ -241,7 +231,6 @@
             const session = (await supabase.auth.getSession()).data.session;
             
             if (user && session) {
-                // Seguridad: Verificar que el perfil exista y el rol sea válido
                 const { data: perfil, error } = await supabase
                     .from('perfiles')
                     .select('es_profesor')
@@ -249,12 +238,11 @@
                     .single();
 
                 if (error || !perfil) {
-                    console.error("Perfil no encontrado. El usuario debe completar el registro o el rol es inválido.");
+                    console.error("Perfil no encontrado o rol inválido.");
                     await signOutUser();
                     return;
                 }
                 
-                // Muestra la aplicación
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
                 logoutButton.style.display = 'block'; 
@@ -264,10 +252,9 @@
                 }
 
             } else {
-                // Muestra el formulario de autenticación
                 authContainer.style.display = 'block';
                 appContainer.style.display = 'none';
-                logoutButton.style.display = 'none'; 
+                logoutButton.style.display = 'none'; 
                 toggleFormMode(false);
             }
         }
@@ -277,7 +264,6 @@
         // ------------------------------------------------------------------
 
         function parsearRespuesta(texto) {
-            // Se mantiene la función original para manejar los tags de imagen
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
             return texto.replace(regex, (match, url) => {
                 return `<br><a href="${url}" target="_blank" title="Haz clic para ver la imagen completa">
@@ -290,38 +276,37 @@
             const question = userQuestionInput.value.trim();
             const session = await supabase.auth.getSession();
             
-            // La seguridad de acceso está garantizada aquí
             if (!question || !session.data.session) {
-                checkAuthentication(); 
+                checkAuthentication(); 
                 alert("Debes iniciar sesión para usar el asistente.");
                 return;
             }
 
             const token = session.data.session.access_token;
-            const userId = session.data.session.user.id; 
-            const sanitizedQuestion = sanitizeInput(question); // Limpia la pregunta antes de mostrar y enviar
+            const userId = session.data.session.user.id; 
+            const sanitizedQuestion = sanitizeInput(question); 
 
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${sanitizedQuestion}`; // Usamos la pregunta sanitizada
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${sanitizedQuestion}`; 
             chatWindow.appendChild(userMessageDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight; 
+            chatWindow.scrollTop = chatWindow.scrollHeight; 
 
-            userQuestionInput.value = ''; 
-            sendButton.disabled = true; 
-            loadingSpinner.classList.add('active'); 
+            userQuestionInput.value = ''; 
+            sendButton.disabled = true; 
+            loadingSpinner.classList.add('active'); 
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 
+                    headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
+                        'Authorization': `Bearer ${token}` 
                     },
-                    body: JSON.stringify({ 
-                        pregunta: sanitizedQuestion, // Enviamos la pregunta sanitizada
-                        user_id: userId, 
-                        session_id: currentSessionId 
+                    body: JSON.stringify({ 
+                        pregunta: sanitizedQuestion, 
+                        user_id: userId, 
+                        session_id: currentSessionId 
                     }),
                 });
 
@@ -329,17 +314,13 @@
                     throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json(); 
+                const data = await response.json(); 
                 
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
 
-                // Aquí deberías SANITIZAR la respuesta de la IA (data.respuesta_principal) si no confías en la API.
-                // Como es tu propia API la dejaremos pasar, pero es una buena práctica.
-
                 let htmlRespuesta = '<strong>AI:</strong>';
 
-                // ... (El resto del renderizado de la respuesta de la IA)
                 if (data.respuesta_principal) {
                     const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
                     htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
@@ -363,7 +344,6 @@
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
             } catch (error) {
-                // ... (Manejo de errores)
                 console.error("Error al obtener respuesta de la IA:", error);
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message ai-message';
@@ -372,19 +352,19 @@
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
             } finally {
-                sendButton.disabled = false; 
-                loadingSpinner.classList.remove('active'); 
+                sendButton.disabled = false; 
+                loadingSpinner.classList.remove('active'); 
             }
         }
 
         // ------------------------------------------------------------------
-        // --- ASIGNACIÓN DE EVENTOS ---
+        // --- ASIGNACIÓN DE EVENTOS Y START ---
         // ------------------------------------------------------------------
 
         sendButton.addEventListener('click', sendMessage);
         userQuestionInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { 
-                e.preventDefault(); 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
                 sendMessage();
             }
         });
@@ -419,5 +399,3 @@
     </script>
 </body>
 </html>
-
-
