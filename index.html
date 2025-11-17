@@ -4,302 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente de Blender (AI)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <!-- El script de Supabase y la lógica JS se mueven al final del <body> -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #1a1a1e;
+            --color-container-bg: #25252d;
+            --color-chat-bg: #1e1e24;
+            --color-accent: #007bff;
+            --color-accent-hover: #0056b3;
+            --color-text-primary: #f0f0f0;
+            --color-text-secondary: #a0a0a0;
+            --color-border: #3a3a4a;
+            --color-shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            text-align: center;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-y: auto;
+        }
+
+        .container {
+            background-color: var(--color-container-bg);
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px var(--color-shadow);
+            max-width: 800px;
+            width: 90%;
+            margin: 20px auto;
+            border: 1px solid var(--color-border);
+        }
+
+        .logo-container {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .logo-container img {
+            max-width: 100px;
+            height: auto;
+            content: url('https://placehold.co/100x100/25252d/007bff?text=B');
+            border-radius: 50%;
+            border: 2px solid var(--color-accent);
+        }
+
+        h1 {
+            color: var(--color-text-primary);
+            font-size: 2.0em;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-window {
+            background-color: var(--color-chat-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+            text-align: left;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .message strong {
+            color: var(--color-accent);
+            font-weight: 600;
+        }
+
+        .user-message {
+            color: var(--color-text-primary);
+        }
+
+        .ai-message {
+            color: var(--color-text-primary);
+        }
+        
+        /* Estilos para la respuesta estructurada de la IA (v10+) */
+        .ai-message p {
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .ai-message ul {
+            margin-left: 20px;
+            padding-left: 0;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            list-style-type: disc;
+        }
+        .ai-message li {
+            margin-bottom: 8px;
+        }
+        .ai-message .fuente {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 15px;
+            border-top: 1px solid var(--color-border);
+            padding-top: 8px;
+        }
+        
+        /* --- ESTILO PARA IMÁGENES EN EL CHAT --- */
+        .chat-image {
+            max-width: 90%;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            margin-top: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .chat-image:hover {
+            transform: scale(1.02);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            background-color: var(--color-chat-bg);
+            color: var(--color-text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 50px;
+            box-sizing: border-box; 
+        }
+
+        textarea::placeholder {
+            color: var(--color-text-secondary);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            background-color: var(--color-accent);
+            color: var(--color-text-primary);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px var(--color-shadow);
+        }
+
+        button:hover {
+            background-color: var(--color-accent-hover);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--color-border);
+            border-top: 4px solid var(--color-accent);
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+            display: none; 
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px 25px; margin: 10px auto; width: 95%; }
+            h1 { font-size: 1.8em; }
+            textarea { font-size: 0.9em; min-height: 40px; }
+            button { font-size: 1em; padding: 10px 20px; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="logo-container">
-            <!-- Usando un placeholder corregido -->
-            <img src="https://placehold.co/100x100/1e1e24/ff7a00?text=Blender" alt="Logo Asistente AI">
+            <img src="https" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
-
-        <!-- 1. Contenedor de AUTENTICACIÓN (LOGIN/REGISTRO) -->
-        <div class="auth-container" id="authContainer">
-            <h2>Bienvenido a la Comunidad Educativa</h2>
-            
-            <button id="toggleRegister">Quiero registrarme como estudiante</button>
-
-            <form id="authForm">
-                <!-- CAMPOS COMUNES (Ahora con atributo NAME) -->
-                <input type="email" id="authEmail" name="authEmail" placeholder="Correo Electrónico" required>
-                <input type="password" id="authPassword" name="authPassword" placeholder="Contraseña" required>
-
-                <!-- CAMPOS ADICIONALES PARA EL REGISTRO (Ocultos por defecto) -->
-                <div id="registerFields" style="display: none;">
-                    
-                    <hr style="margin: 10px 0;">
-                    <label>Datos Personales y Contacto</label>
-                    
-                    <!-- CORRECCIÓN: Se añade el atributo NAME a todos los campos -->
-                    <input type="text" id="authNombreCompleto" name="authNombreCompleto" placeholder="Nombre Completo">
-                    <input type="text" id="authRegion" name="authRegion" placeholder="Región/País">
-                    <input type="text" id="authInstitution" name="authInstitution" placeholder="Institución Educativa">
-                    <input type="tel" id="authCelular" name="authCelular" placeholder="Número de Celular">
-                    <input type="tel" id="authWhatsApp" name="authWhatsApp" placeholder="Número de WhatsApp (opcional)">
-
-                    <hr style="margin: 10px 0;">
-                    <label>Datos Educativos (Mejora del RAG)</label>
-                    
-                    <select id="authTemaInteres" name="authTemaInteres">
-                        <option value="">Tema de Interés Principal...</option>
-                        <option value="Modelado_3D">Modelado 3D (Blender)</option>
-                        <option value="Fisica">Física Avanzada</option>
-                        <option value="Matematicas">Matemáticas</option>
-                        <option value="Otros">Otros</option>
-                    </select>
-
-                    <select id="authNivelEducativo" name="authNivelEducativo">
-                        <option value="">Nivel Educativo Actual...</option>
-                        <option value="Secundaria">Secundaria</option>
-                        <option value="Bachillerato">Bachillerato/Prepa</option>
-                        <option value="Universitario">Universitario</option>
-                        <option value="Otro">Otro</option>
-                    </select>
-
-                    <hr style="margin: 10px 0;">
-                    <label>Contexto Tecnológico (Brecha Digital)</label>
-                    
-                    <select id="authDispositivo" name="authDispositivo">
-                        <option value="">Dispositivo Principal...</option>
-                        <option value="Smartphone">Smartphone</option>
-                        <option value="Laptop_Antigua">Laptop (Más de 5 años)</option>
-                        <option value="PC_Escritorio">PC de Escritorio</option>
-                    </select>
-
-                    <select id="authVelocidadInternet" name="authVelocidadInternet">
-                        <option value="">Velocidad de Internet...</option>
-                        <option value="Lenta_Movil">Lenta (Datos Móviles)</option>
-                        <option value="Media_ADSL">Media (ADSL/Cable)</option>
-                        <option value="Rapida_Fibra">Rápida (Fibra Óptica)</option>
-                    </select>
-                </div>
-                
-                <button type="submit" id="submitButton">Iniciar Sesión</button>
-            </form>
-        </div>
-
-
-        <!-- 2. Contenedor de la APLICACIÓN (CHAT) (Oculto por defecto) -->
-        <div class="app-container" id="appContainer" style="display: none;">
-            <div class="chat-window" id="chatWindow">
-                <div class="message ai-message">
-                    <strong>AI:</strong> ¡Hola! Soy tu asistente de Blender. Haz una pregunta sobre modelado, iluminación o animación para empezar.
-                </div>
+        <div class="chat-window" id="chatWindow">
+            <div class="message ai-message">
+                <strong>AI:</strong> Hola! Soy tu asistente para el manual de Blender. ¿En qué puedo ayudarte hoy?
             </div>
-            <textarea id="userQuestion" placeholder="Escribe tu pregunta sobre Blender aquí..."></textarea>
-            <button id="sendButton">Enviar</button>
-            <div class="loading-spinner" id="loadingSpinner"></div>
-            <button id="logoutButton" style="margin-top: 15px;">Cerrar Sesión</button>
         </div>
+        <textarea id="userQuestion" placeholder="Escribe tu pregunta sobre Blender aquí..."></textarea>
+        <button id="sendButton">Enviar</button>
+        <div class="loading-spinner" id="loadingSpinner"></div>
     </div>
 
-    <!-- 🔑 IMPORTANTE: Script de Supabase y la lógica van AQUÍ -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> 
-    
     <script>
-        // 🔑 CONFIGURACIÓN DE SUPABASE (¡Tus claves ya están puestas!)
-        const SUPABASE_URL = 'https://faujkhrypihnaxqvnroc.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhdWpraHJ5cGlobmF4cXZucm9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzM5ODgsImV4cCI6MjA3ODkwOTk4OH0.SR-OBag_SyIJrHwVG2M4MPrZmrb2ByjHjJpagAEAOoE';
-        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
-        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // --- Elementos de la Interfaz ---
-        const authContainer = document.getElementById('authContainer');
-        const appContainer = document.getElementById('appContainer');
-        const authForm = document.getElementById('authForm');
-        const registerFields = document.getElementById('registerFields');
-        const submitButton = document.getElementById('submitButton');
-        const toggleRegisterButton = document.getElementById('toggleRegister');
-        const logoutButton = document.getElementById('logoutButton');
         const chatWindow = document.getElementById('chatWindow');
         const userQuestionInput = document.getElementById('userQuestion');
         const sendButton = document.getElementById('sendButton');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // --- Inputs de Autenticación ---
-        const authEmailInput = document.getElementById('authEmail');
-        const authPasswordInput = document.getElementById('authPassword');
+        // --- URL DEL API (APUNTANDO AL ENDPOINT CONVERSACIONAL) ---
+        // Asegúrate de que esta URL sea la correcta para tu deploy en Render
+        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
-        // --- Inputs del Formulario de Perfil (Alumnos) ---
-        const authNombreCompletoInput = document.getElementById('authNombreCompleto');
-        const authRegionInput = document.getElementById('authRegion');
-        const authInstitutionInput = document.getElementById('authInstitution');
-        const authCelularInput = document.getElementById('authCelular');
-        const authWhatsAppInput = document.getElementById('authWhatsApp');
-        const authTemaInteresInput = document.getElementById('authTemaInteres');
-        const authNivelEducativoInput = document.getElementById('authNivelEducativo');
-        const authDispositivoInput = document.getElementById('authDispositivo');
-        const authVelocidadInternetInput = document.getElementById('authVelocidadInternet');
-        
-        let currentSessionId = null; 
-
-        // --- Listado de campos de registro para control dinámico ---
-        const registrationInputs = [
-            authNombreCompletoInput,
-            authRegionInput,
-            authInstitutionInput,
-            authCelularInput,
-            authTemaInteresInput,
-            authNivelEducativoInput,
-            authDispositivoInput,
-            authVelocidadInternetInput
-        ];
-
-
-        // ------------------------------------------------------------------
-        // --- FUNCIONES DE SEGURIDAD ---
-        // ------------------------------------------------------------------
-
-        // Función de sanitización para prevenir XSS en los inputs de texto
-        function sanitizeInput(text) {
-            if (!text) return text;
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;")
-                .trim();
-        }
-
-        // ------------------------------------------------------------------
-        // --- FUNCIONES DE AUTENTICACIÓN ---
-        // ------------------------------------------------------------------
-
-        function toggleFormMode(isRegister) {
-            if (isRegister) {
-                // MODO REGISTRO: Habilitar campos y validación (SOLUCIÓN al error 'not focusable')
-                registerFields.style.display = 'block';
-                registrationInputs.forEach(input => input.setAttribute('required', 'required'));
-
-                submitButton.textContent = 'Registrarme';
-                toggleRegisterButton.textContent = 'Ya tengo una cuenta, quiero iniciar sesión';
-            } else {
-                // MODO LOGIN: Deshabilitar campos y validación
-                registerFields.style.display = 'none';
-                registrationInputs.forEach(input => input.removeAttribute('required'));
-
-                submitButton.textContent = 'Iniciar Sesión';
-                toggleRegisterButton.textContent = 'Quiero registrarme como estudiante';
-            }
-        }
-        
-        async function signUpStudent(email, password) {
-            // 1. Sanitización de datos de texto
-            const cleanedNombreCompleto = sanitizeInput(authNombreCompletoInput.value);
-            const cleanedRegion = sanitizeInput(authRegionInput.value);
-            const cleanedInstitution = sanitizeInput(authInstitutionInput.value);
-            const cleanedCelular = sanitizeInput(authCelularInput.value);
-            const cleanedWhatsApp = sanitizeInput(authWhatsAppInput.value);
-
-            // 2. Crear la cuenta de usuario en Supabase Auth
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: email,
-                password: password
-            });
-
-            if (authError) {
-                alert('Error en el registro de cuenta: ' + authError.message);
-                return false;
-            }
-            
-            const userId = authData.user.id;
-
-            // 3. Insertar los datos completos y sanitizados en la tabla 'perfiles'
-            const { error: profileError } = await supabase
-                .from('perfiles')
-                .insert({
-                    id: userId,
-                    email_perfil: email, 
-                    nombre_completo: cleanedNombreCompleto,
-                    institucion: cleanedInstitution,
-                    region: cleanedRegion,
-                    celular: cleanedCelular,
-                    whatsapp: cleanedWhatsApp || null,
-                    es_profesor: false, 
-                    tema_interes: authTemaInteresInput.value,
-                    nivel_educativo: authNivelEducativoInput.value,
-                    dispositivo_acceso: authDispositivoInput.value,
-                    velocidad_internet: authVelocidadInternetInput.value
-                });
-
-            if (profileError) {
-                console.error('Error al guardar el perfil:', profileError);
-                alert('Error al guardar el perfil. Contacte al administrador. ' + profileError.message);
-                return false;
-            }
-
-            alert('¡Registro exitoso! Revisa tu correo electrónico para confirmar tu cuenta y luego inicia sesión.');
-            return true;
-        }
-
-        async function signInUser(email, password) {
-            const { error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
-
-            if (error) {
-                alert('Error al iniciar sesión: Credenciales incorrectas, o cuenta no confirmada/autorizada.');
-                return false;
-            }
-
-            checkAuthentication();
-            return true;
-        }
-
-        async function signOutUser() {
-            await supabase.auth.signOut();
-            currentSessionId = null; 
-            checkAuthentication();
-            alert('Sesión cerrada.');
-        }
-
-        async function checkAuthentication() {
-            const { data: { user } } = await supabase.auth.getUser();
-            const session = (await supabase.auth.getSession()).data.session;
-            
-            if (user && session) {
-                // Seguridad: Verificar que el perfil exista y el rol sea válido
-                const { data: perfil, error } = await supabase
-                    .from('perfiles')
-                    .select('es_profesor')
-                    .eq('id', user.id)
-                    .single();
-
-                if (error || !perfil) {
-                    console.error("Perfil no encontrado o rol inválido.");
-                    await signOutUser();
-                    return;
-                }
-                
-                // Si la autenticación es exitosa y el perfil válido, ir directamente a la IA (CHAT)
-                authContainer.style.display = 'none';
-                appContainer.style.display = 'block';
-                logoutButton.style.display = 'block'; 
-                
-                if (!currentSessionId) {
-                    currentSessionId = crypto.randomUUID();
-                }
-
-            } else {
-                // Muestra el formulario de autenticación
-                authContainer.style.display = 'block';
-                appContainer.style.display = 'none';
-                logoutButton.style.display = 'none'; 
-                toggleFormMode(false);
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // --- FUNCIONES DE CHAT (HISTORIAL) ---
-        // ------------------------------------------------------------------
-
+        // Función para buscar URLs de imágenes que la IA pueda incluir en la respuesta.
         function parsearRespuesta(texto) {
+            // Reemplaza [Imagen relevante disponible en: (URL)] con HTML <img>
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
+            
             return texto.replace(regex, (match, url) => {
                 return `<br><a href="${url}" target="_blank" title="Haz clic para ver la imagen completa">
                             <img src="${url}" alt="Imagen del Manual" class="chat-image">
@@ -307,73 +250,74 @@
             });
         }
 
+        sendButton.addEventListener('click', sendMessage);
+        userQuestionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMessage();
+            }
+        });
+
         async function sendMessage() {
             const question = userQuestionInput.value.trim();
-            const session = await supabase.auth.getSession();
-            
-            if (!question || !session.data.session) {
-                checkAuthentication(); 
-                alert("Debes iniciar sesión para usar el asistente.");
-                return;
-            }
+            if (!question) return;
 
-            const token = session.data.session.access_token;
-            const userId = session.data.session.user.id; 
-            const sanitizedQuestion = sanitizeInput(question); 
-
+            // 1. Mostrar mensaje del usuario
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${sanitizedQuestion}`; 
+            const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
             chatWindow.appendChild(userMessageDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight; 
+            chatWindow.scrollTop = chatWindow.scrollHeight; 
 
-            userQuestionInput.value = ''; 
-            sendButton.disabled = true; 
-            loadingSpinner.classList.add('active'); 
+            userQuestionInput.value = ''; 
+            sendButton.disabled = true; 
+            loadingSpinner.classList.add('active'); 
 
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ 
-                        pregunta: sanitizedQuestion, 
-                        user_id: userId, 
-                        session_id: currentSessionId 
-                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pregunta: question }),
                 });
 
                 if (!response.ok) {
                     throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
                 }
 
-                const data = await response.json(); 
+                // data es el JSON estructurado: {respuesta_principal, puntos_clave, fuente}
+                const data = await response.json(); 
                 
+                // 2. Crear el div contenedor del mensaje AI
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
 
+                // 3. Construir el HTML interno (Lógica de renderizado estructurado)
                 let htmlRespuesta = '<strong>AI:</strong>';
 
+                // a) Añadir el párrafo principal (sanitizando saltos de línea e imágenes)
                 if (data.respuesta_principal) {
                     const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
                     htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
                 }
-                
+
+                // b) Añadir la lista de puntos clave
                 if (data.puntos_clave && data.puntos_clave.length > 0) {
                     htmlRespuesta += '<ul>';
                     for (const punto of data.puntos_clave) {
+                        // Sanitizamos y parseamos la descripción de cada punto
                         const descripcion = parsearRespuesta(punto.descripcion.replace(/\n/g, '<br>'));
                         htmlRespuesta += `<li><strong>${punto.titulo}:</strong> ${descripcion}</li>`;
                     }
                     htmlRespuesta += '</ul>';
                 }
 
+                // c) Añadir la fuente
                 if (data.fuente) {
                     htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
                 }
-
+                
+                // 4. Asignar el HTML construido al chat
                 aiMessageDiv.innerHTML = htmlRespuesta;
                 chatWindow.appendChild(aiMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -387,50 +331,10 @@
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
             } finally {
-                sendButton.disabled = false; 
-                loadingSpinner.classList.remove('active'); 
+                sendButton.disabled = false; 
+                loadingSpinner.classList.remove('active'); 
             }
         }
-
-        // ------------------------------------------------------------------
-        // --- ASIGNACIÓN DE EVENTOS Y START ---
-        // ------------------------------------------------------------------
-
-        sendButton.addEventListener('click', sendMessage);
-        userQuestionInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { 
-                e.preventDefault(); 
-                sendMessage();
-            }
-        });
-        
-        authForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            submitButton.disabled = true;
-
-            const email = authEmailInput.value.trim();
-            const password = authPasswordInput.value.trim();
-            
-            if (submitButton.textContent === 'Registrarme') {
-                await signUpStudent(email, password);
-                toggleFormMode(false); 
-            } else {
-                await signInUser(email, password);
-            }
-            
-            submitButton.disabled = false;
-        });
-
-        toggleRegisterButton.addEventListener('click', () => {
-            const isRegisterMode = (submitButton.textContent !== 'Registrarme');
-            toggleFormMode(isRegisterMode);
-        });
-
-        logoutButton.addEventListener('click', signOutUser);
-
-        // Inicialización: Verificar la sesión al cargar la página
-        checkAuthentication();
-
     </script>
 </body>
 </html>
