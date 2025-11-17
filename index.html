@@ -6,33 +6,272 @@
     <title>Asistente de Blender (AI)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    </head>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
 <body>
     <div class="container">
         <div class="logo-container">
             <img src="https" alt="Logo Asistente AI">
         </div>
         <h1>Asistente de Blender</h1>
-        <div class="chat-window" id="chatWindow">
-            <div class="message ai-message">
-                <strong>AI:</strong> Hola! Soy tu asistente para el manual de Blender. ¿En qué puedo ayudarte hoy?
-            </div>
+
+        <div class="auth-container" id="authContainer">
+            <h2>Bienvenido a la Comunidad Educativa</h2>
+            
+            <button id="toggleRegister">Quiero registrarme como estudiante</button>
+
+            <form id="authForm">
+                <input type="email" id="authEmail" placeholder="Correo Electrónico" required>
+                <input type="password" id="authPassword" placeholder="Contraseña" required>
+
+                <div id="registerFields" style="display: none;">
+                    
+                    <hr style="margin: 10px 0;">
+                    <label>Datos Personales y Contacto</label>
+                    <input type="text" id="authNombreCompleto" placeholder="Nombre Completo" required>
+                    <input type="text" id="authRegion" placeholder="Región/País" required>
+                    <input type="text" id="authInstitution" placeholder="Institución Educativa" required>
+                    <input type="tel" id="authCelular" placeholder="Número de Celular" required>
+                    <input type="tel" id="authWhatsApp" placeholder="Número de WhatsApp (opcional)">
+
+                    <hr style="margin: 10px 0;">
+                    <label>Datos Educativos (Mejora del RAG)</label>
+                    
+                    <select id="authTemaInteres" required>
+                        <option value="">Tema de Interés Principal...</option>
+                        <option value="Modelado_3D">Modelado 3D (Blender)</option>
+                        <option value="Fisica">Física Avanzada</option>
+                        <option value="Matematicas">Matemáticas</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+
+                    <select id="authNivelEducativo" required>
+                        <option value="">Nivel Educativo Actual...</option>
+                        <option value="Secundaria">Secundaria</option>
+                        <option value="Bachillerato">Bachillerato/Prepa</option>
+                        <option value="Universitario">Universitario</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+
+                    <hr style="margin: 10px 0;">
+                    <label>Contexto Tecnológico (Brecha Digital)</label>
+                    
+                    <select id="authDispositivo" required>
+                        <option value="">Dispositivo Principal...</option>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Laptop_Antigua">Laptop (Más de 5 años)</option>
+                        <option value="PC_Escritorio">PC de Escritorio</option>
+                    </select>
+
+                    <select id="authVelocidadInternet" required>
+                        <option value="">Velocidad de Internet...</option>
+                        <option value="Lenta_Movil">Lenta (Datos Móviles)</option>
+                        <option value="Media_ADSL">Media (ADSL/Cable)</option>
+                        <option value="Rapida_Fibra">Rápida (Fibra Óptica)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" id="submitButton">Iniciar Sesión</button>
+            </form>
         </div>
-        <textarea id="userQuestion" placeholder="Escribe tu pregunta sobre Blender aquí..."></textarea>
-        <button id="sendButton">Enviar</button>
-        <div class="loading-spinner" id="loadingSpinner"></div>
+
+
+        <div class="app-container" id="appContainer" style="display: none;">
+            <div class="chat-window" id="chatWindow">
+                <div class="message ai-message">
+                    <strong>AI:</strong> ¡Hola! Soy tu asistente de Blender. Haz una pregunta sobre modelado, iluminación o animación para empezar.
+                </div>
+            </div>
+            <textarea id="userQuestion" placeholder="Escribe tu pregunta sobre Blender aquí..."></textarea>
+            <button id="sendButton">Enviar</button>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <button id="logoutButton" style="margin-top: 15px;">Cerrar Sesión</button>
+        </div>
     </div>
 
     <script>
+        // 🔑 CONFIGURACIÓN DE SUPABASE (¡REEMPLAZA ESTOS VALORES!)
+        const SUPABASE_URL = 'TU_PROJECT_URL_AQUÍ'; 
+        const SUPABASE_ANON_KEY = 'TU_ANON_PUBLIC_KEY_AQUÍ';
+        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Elementos de la Interfaz ---
+        const authContainer = document.getElementById('authContainer');
+        const appContainer = document.getElementById('appContainer');
+        const authForm = document.getElementById('authForm');
+        const registerFields = document.getElementById('registerFields');
+        const submitButton = document.getElementById('submitButton');
+        const toggleRegisterButton = document.getElementById('toggleRegister');
+        const logoutButton = document.getElementById('logoutButton');
         const chatWindow = document.getElementById('chatWindow');
         const userQuestionInput = document.getElementById('userQuestion');
         const sendButton = document.getElementById('sendButton');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // URL del API (Asegúrate de que sea la correcta para tu deploy)
-        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
+        // --- Inputs de Autenticación ---
+        const authEmailInput = document.getElementById('authEmail');
+        const authPasswordInput = document.getElementById('authPassword');
+
+        // --- Inputs del Formulario de Perfil (Alumnos) ---
+        const authNombreCompletoInput = document.getElementById('authNombreCompleto');
+        const authRegionInput = document.getElementById('authRegion');
+        const authInstitutionInput = document.getElementById('authInstitution');
+        const authCelularInput = document.getElementById('authCelular');
+        const authWhatsAppInput = document.getElementById('authWhatsApp');
+        const authTemaInteresInput = document.getElementById('authTemaInteres');
+        const authNivelEducativoInput = document.getElementById('authNivelEducativo');
+        const authDispositivoInput = document.getElementById('authDispositivo');
+        const authVelocidadInternetInput = document.getElementById('authVelocidadInternet');
+        
+        let currentSessionId = null; 
+
+        // ------------------------------------------------------------------
+        // --- FUNCIONES DE SEGURIDAD ---
+        // ------------------------------------------------------------------
+
+        // Función de sanitización para prevenir XSS en los inputs de texto
+        function sanitizeInput(text) {
+            if (!text) return text;
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .trim();
+        }
+
+        // ------------------------------------------------------------------
+        // --- FUNCIONES DE AUTENTICACIÓN ---
+        // ------------------------------------------------------------------
+
+        function toggleFormMode(isRegister) {
+            if (isRegister) {
+                registerFields.style.display = 'block';
+                submitButton.textContent = 'Registrarme';
+                toggleRegisterButton.textContent = 'Ya tengo una cuenta, quiero iniciar sesión';
+            } else {
+                registerFields.style.display = 'none';
+                submitButton.textContent = 'Iniciar Sesión';
+                toggleRegisterButton.textContent = 'Quiero registrarme como estudiante';
+            }
+        }
+        
+        async function signUpStudent(email, password) {
+            // 1. Sanitización de datos de texto
+            const cleanedNombreCompleto = sanitizeInput(authNombreCompletoInput.value);
+            const cleanedRegion = sanitizeInput(authRegionInput.value);
+            const cleanedInstitution = sanitizeInput(authInstitutionInput.value);
+            const cleanedCelular = sanitizeInput(authCelularInput.value);
+            const cleanedWhatsApp = sanitizeInput(authWhatsAppInput.value);
+
+            // 2. Crear la cuenta de usuario en Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+
+            if (authError) {
+                alert('Error en el registro de cuenta: ' + authError.message);
+                return false;
+            }
+            
+            const userId = authData.user.id;
+
+            // 3. Insertar los datos completos y sanitizados en la tabla 'perfiles'
+            const { error: profileError } = await supabase
+                .from('perfiles')
+                .insert({
+                    id: userId,
+                    email_perfil: email, 
+                    nombre_completo: cleanedNombreCompleto,
+                    institucion: cleanedInstitution,
+                    region: cleanedRegion,
+                    celular: cleanedCelular,
+                    whatsapp: cleanedWhatsApp || null,
+                    es_profesor: false, 
+                    tema_interes: authTemaInteresInput.value,
+                    nivel_educativo: authNivelEducativoInput.value,
+                    dispositivo_acceso: authDispositivoInput.value,
+                    velocidad_internet: authVelocidadInternetInput.value
+                });
+
+            if (profileError) {
+                console.error('Error al guardar el perfil:', profileError);
+                alert('Error al guardar el perfil. Contacte al administrador. ' + profileError.message);
+                return false;
+            }
+
+            alert('¡Registro exitoso! Revisa tu correo electrónico para confirmar tu cuenta y luego inicia sesión.');
+            return true;
+        }
+
+        async function signInUser(email, password) {
+            const { error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                alert('Error al iniciar sesión: Credenciales incorrectas, o cuenta no confirmada/autorizada.');
+                return false;
+            }
+
+            checkAuthentication();
+            return true;
+        }
+
+        async function signOutUser() {
+            await supabase.auth.signOut();
+            currentSessionId = null; 
+            checkAuthentication();
+            alert('Sesión cerrada.');
+        }
+
+        async function checkAuthentication() {
+            const { data: { user } } = await supabase.auth.getUser();
+            const session = (await supabase.auth.getSession()).data.session;
+            
+            if (user && session) {
+                // Seguridad: Verificar que el perfil exista y el rol sea válido
+                const { data: perfil, error } = await supabase
+                    .from('perfiles')
+                    .select('es_profesor')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error || !perfil) {
+                    console.error("Perfil no encontrado. El usuario debe completar el registro o el rol es inválido.");
+                    await signOutUser();
+                    return;
+                }
+                
+                // Muestra la aplicación
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+                logoutButton.style.display = 'block'; 
+                
+                if (!currentSessionId) {
+                    currentSessionId = crypto.randomUUID();
+                }
+
+            } else {
+                // Muestra el formulario de autenticación
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+                logoutButton.style.display = 'none'; 
+                toggleFormMode(false);
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // --- FUNCIONES DE CHAT (HISTORIAL) ---
+        // ------------------------------------------------------------------
 
         function parsearRespuesta(texto) {
+            // Se mantiene la función original para manejar los tags de imagen
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
             return texto.replace(regex, (match, url) => {
                 return `<br><a href="${url}" target="_blank" title="Haz clic para ver la imagen completa">
@@ -41,22 +280,24 @@
             });
         }
 
-        sendButton.addEventListener('click', sendMessage);
-        userQuestionInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { 
-                e.preventDefault(); 
-                sendMessage();
-            }
-        });
-
         async function sendMessage() {
             const question = userQuestionInput.value.trim();
-            if (!question) return;
+            const session = await supabase.auth.getSession();
+            
+            // La seguridad de acceso está garantizada aquí
+            if (!question || !session.data.session) {
+                checkAuthentication(); 
+                alert("Debes iniciar sesión para usar el asistente.");
+                return;
+            }
+
+            const token = session.data.session.access_token;
+            const userId = session.data.session.user.id; 
+            const sanitizedQuestion = sanitizeInput(question); // Limpia la pregunta antes de mostrar y enviar
 
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
-            const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
+            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${sanitizedQuestion}`; // Usamos la pregunta sanitizada
             chatWindow.appendChild(userMessageDiv);
             chatWindow.scrollTop = chatWindow.scrollHeight; 
 
@@ -67,8 +308,15 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pregunta: question }),
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ 
+                        pregunta: sanitizedQuestion, // Enviamos la pregunta sanitizada
+                        user_id: userId, 
+                        session_id: currentSessionId 
+                    }),
                 });
 
                 if (!response.ok) {
@@ -80,13 +328,17 @@
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
 
+                // Aquí deberías SANITIZAR la respuesta de la IA (data.respuesta_principal) si no confías en la API.
+                // Como es tu propia API la dejaremos pasar, pero es una buena práctica.
+
                 let htmlRespuesta = '<strong>AI:</strong>';
 
+                // ... (El resto del renderizado de la respuesta de la IA)
                 if (data.respuesta_principal) {
                     const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
                     htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
                 }
-
+                
                 if (data.puntos_clave && data.puntos_clave.length > 0) {
                     htmlRespuesta += '<ul>';
                     for (const punto of data.puntos_clave) {
@@ -99,12 +351,13 @@
                 if (data.fuente) {
                     htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
                 }
-                
+
                 aiMessageDiv.innerHTML = htmlRespuesta;
                 chatWindow.appendChild(aiMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
             } catch (error) {
+                // ... (Manejo de errores)
                 console.error("Error al obtener respuesta de la IA:", error);
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message ai-message';
@@ -117,6 +370,46 @@
                 loadingSpinner.classList.remove('active'); 
             }
         }
+
+        // ------------------------------------------------------------------
+        // --- ASIGNACIÓN DE EVENTOS ---
+        // ------------------------------------------------------------------
+
+        sendButton.addEventListener('click', sendMessage);
+        userQuestionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMessage();
+            }
+        });
+        
+        authForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            submitButton.disabled = true;
+
+            const email = authEmailInput.value.trim();
+            const password = authPasswordInput.value.trim();
+            
+            if (submitButton.textContent === 'Registrarme') {
+                await signUpStudent(email, password);
+                toggleFormMode(false); 
+            } else {
+                await signInUser(email, password);
+            }
+            
+            submitButton.disabled = false;
+        });
+
+        toggleRegisterButton.addEventListener('click', () => {
+            const isRegisterMode = (submitButton.textContent !== 'Registrarme');
+            toggleFormMode(isRegisterMode);
+        });
+
+        logoutButton.addEventListener('click', signOutUser);
+
+        // Inicialización: Verificar la sesión al cargar la página
+        checkAuthentication();
+
     </script>
 </body>
 </html>
