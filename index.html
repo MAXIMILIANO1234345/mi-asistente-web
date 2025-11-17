@@ -27,16 +27,16 @@
                     
                     <hr style="margin: 10px 0;">
                     <label>Datos Personales y Contacto</label>
-                    <input type="text" id="authNombreCompleto" placeholder="Nombre Completo" required>
-                    <input type="text" id="authRegion" placeholder="Región/País" required>
-                    <input type="text" id="authInstitution" placeholder="Institución Educativa" required>
-                    <input type="tel" id="authCelular" placeholder="Número de Celular" required>
+                    <input type="text" id="authNombreCompleto" placeholder="Nombre Completo">
+                    <input type="text" id="authRegion" placeholder="Región/País">
+                    <input type="text" id="authInstitution" placeholder="Institución Educativa">
+                    <input type="tel" id="authCelular" placeholder="Número de Celular">
                     <input type="tel" id="authWhatsApp" placeholder="Número de WhatsApp (opcional)">
 
                     <hr style="margin: 10px 0;">
                     <label>Datos Educativos (Mejora del RAG)</label>
                     
-                    <select id="authTemaInteres" required>
+                    <select id="authTemaInteres">
                         <option value="">Tema de Interés Principal...</option>
                         <option value="Modelado_3D">Modelado 3D (Blender)</option>
                         <option value="Fisica">Física Avanzada</option>
@@ -44,7 +44,7 @@
                         <option value="Otros">Otros</option>
                     </select>
 
-                    <select id="authNivelEducativo" required>
+                    <select id="authNivelEducativo">
                         <option value="">Nivel Educativo Actual...</option>
                         <option value="Secundaria">Secundaria</option>
                         <option value="Bachillerato">Bachillerato/Prepa</option>
@@ -55,14 +55,14 @@
                     <hr style="margin: 10px 0;">
                     <label>Contexto Tecnológico (Brecha Digital)</label>
                     
-                    <select id="authDispositivo" required>
+                    <select id="authDispositivo">
                         <option value="">Dispositivo Principal...</option>
                         <option value="Smartphone">Smartphone</option>
                         <option value="Laptop_Antigua">Laptop (Más de 5 años)</option>
                         <option value="PC_Escritorio">PC de Escritorio</option>
                     </select>
 
-                    <select id="authVelocidadInternet" required>
+                    <select id="authVelocidadInternet">
                         <option value="">Velocidad de Internet...</option>
                         <option value="Lenta_Movil">Lenta (Datos Móviles)</option>
                         <option value="Media_ADSL">Media (ADSL/Cable)</option>
@@ -127,10 +127,24 @@
         
         let currentSessionId = null; 
 
+        // --- NUEVO: Listado de campos de registro para control dinámico ---
+        const registrationInputs = [
+            authNombreCompletoInput,
+            authRegionInput,
+            authInstitutionInput,
+            authCelularInput,
+            authTemaInteresInput,
+            authNivelEducativoInput,
+            authDispositivoInput,
+            authVelocidadInternetInput
+        ];
+
+
         // ------------------------------------------------------------------
         // --- FUNCIONES DE SEGURIDAD ---
         // ------------------------------------------------------------------
 
+        // Función de sanitización para prevenir XSS en los inputs de texto
         function sanitizeInput(text) {
             if (!text) return text;
             return text
@@ -148,23 +162,31 @@
 
         function toggleFormMode(isRegister) {
             if (isRegister) {
+                // MODO REGISTRO: Habilitar campos y validación (SOLUCIÓN al error 'not focusable')
                 registerFields.style.display = 'block';
+                registrationInputs.forEach(input => input.setAttribute('required', 'required'));
+
                 submitButton.textContent = 'Registrarme';
                 toggleRegisterButton.textContent = 'Ya tengo una cuenta, quiero iniciar sesión';
             } else {
+                // MODO LOGIN: Deshabilitar campos y validación
                 registerFields.style.display = 'none';
+                registrationInputs.forEach(input => input.removeAttribute('required'));
+
                 submitButton.textContent = 'Iniciar Sesión';
                 toggleRegisterButton.textContent = 'Quiero registrarme como estudiante';
             }
         }
         
         async function signUpStudent(email, password) {
+            // 1. Sanitización de datos de texto
             const cleanedNombreCompleto = sanitizeInput(authNombreCompletoInput.value);
             const cleanedRegion = sanitizeInput(authRegionInput.value);
             const cleanedInstitution = sanitizeInput(authInstitutionInput.value);
             const cleanedCelular = sanitizeInput(authCelularInput.value);
             const cleanedWhatsApp = sanitizeInput(authWhatsAppInput.value);
 
+            // 2. Crear la cuenta de usuario en Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: email,
                 password: password
@@ -177,6 +199,7 @@
             
             const userId = authData.user.id;
 
+            // 3. Insertar los datos completos y sanitizados en la tabla 'perfiles'
             const { error: profileError } = await supabase
                 .from('perfiles')
                 .insert({
@@ -187,7 +210,7 @@
                     region: cleanedRegion,
                     celular: cleanedCelular,
                     whatsapp: cleanedWhatsApp || null,
-                    es_profesor: false, 
+                    es_profesor: false, 
                     tema_interes: authTemaInteresInput.value,
                     nivel_educativo: authNivelEducativoInput.value,
                     dispositivo_acceso: authDispositivoInput.value,
@@ -231,6 +254,7 @@
             const session = (await supabase.auth.getSession()).data.session;
             
             if (user && session) {
+                // Seguridad: Verificar que el perfil exista y el rol sea válido
                 const { data: perfil, error } = await supabase
                     .from('perfiles')
                     .select('es_profesor')
@@ -243,6 +267,7 @@
                     return;
                 }
                 
+                // Si la autenticación es exitosa y el perfil válido, ir directamente a la IA (CHAT)
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
                 logoutButton.style.display = 'block'; 
@@ -252,6 +277,7 @@
                 }
 
             } else {
+                // Muestra el formulario de autenticación
                 authContainer.style.display = 'block';
                 appContainer.style.display = 'none';
                 logoutButton.style.display = 'none'; 
