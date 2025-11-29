@@ -228,18 +228,20 @@
         <div class="loading-spinner" id="loadingSpinner"></div>
     </div>
 
-    <script>
+   <script>
         const chatWindow = document.getElementById('chatWindow');
         const userQuestionInput = document.getElementById('userQuestion');
         const sendButton = document.getElementById('sendButton');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // --- URL DEL API (APUNTANDO AL ENDPOINT CONVERSACIONAL) ---
-        // Asegúrate de que esta URL sea la correcta para tu deploy en Render
+        // --- URL DEL API ---
         const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
 
-        // Función para buscar URLs de imágenes que la IA pueda incluir en la respuesta.
+        // 1. FUNCIÓN DE PARSEO MÁS SEGURA
+        // Ahora verifica que 'texto' exista antes de intentar hacer .replace
         function parsearRespuesta(texto) {
+            if (!texto) return ""; // Si es null o undefined, devuelve cadena vacía
+            
             // Reemplaza [Imagen relevante disponible en: (URL)] con HTML <img>
             const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
             
@@ -262,9 +264,10 @@
             const question = userQuestionInput.value.trim();
             if (!question) return;
 
-            // 1. Mostrar mensaje del usuario
+            // Mostrar mensaje del usuario
             const userMessageDiv = document.createElement('div');
             userMessageDiv.className = 'message user-message';
+            // Escapar HTML básico para seguridad
             const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
             chatWindow.appendChild(userMessageDiv);
@@ -285,48 +288,53 @@
                     throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
                 }
 
-                // data es el JSON estructurado: {respuesta_principal, puntos_clave, fuente}
                 const data = await response.json(); 
-                
-                // 2. Crear el div contenedor del mensaje AI
+                console.log("Datos recibidos:", data); // Para depuración en consola
+
                 const aiMessageDiv = document.createElement('div');
                 aiMessageDiv.className = 'message ai-message';
 
-                // 3. Construir el HTML interno (Lógica de renderizado estructurado)
                 let htmlRespuesta = '<strong>AI:</strong>';
 
-                // a) Añadir el párrafo principal (sanitizando saltos de línea e imágenes)
+                // 2. CORRECCIÓN EN RESPUESTA PRINCIPAL
+                // Usamos "|| ''" para asegurar que sea string si viene null
                 if (data.respuesta_principal) {
-                    const parrafoPrincipal = parsearRespuesta(data.respuesta_principal.replace(/\n/g, '<br>'));
+                    const textoRaw = String(data.respuesta_principal); 
+                    const parrafoPrincipal = parsearRespuesta(textoRaw.replace(/\n/g, '<br>'));
                     htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
                 }
 
-                // b) Añadir la lista de puntos clave
-                if (data.puntos_clave && data.puntos_clave.length > 0) {
+                // 3. CORRECCIÓN EN PUNTOS CLAVE (Aquí solía fallar)
+                if (data.puntos_clave && Array.isArray(data.puntos_clave) && data.puntos_clave.length > 0) {
                     htmlRespuesta += '<ul>';
                     for (const punto of data.puntos_clave) {
-                        // Sanitizamos y parseamos la descripción de cada punto
-                        const descripcion = parsearRespuesta(punto.descripcion.replace(/\n/g, '<br>'));
-                        htmlRespuesta += `<li><strong>${punto.titulo}:</strong> ${descripcion}</li>`;
+                        // Verificamos que punto.descripcion exista antes de usar replace
+                        const descRaw = punto.descripcion ? String(punto.descripcion) : "";
+                        const descripcion = parsearRespuesta(descRaw.replace(/\n/g, '<br>'));
+                        
+                        // Verificamos que punto.titulo exista
+                        const titulo = punto.titulo || "Punto";
+                        
+                        htmlRespuesta += `<li><strong>${titulo}:</strong> ${descripcion}</li>`;
                     }
                     htmlRespuesta += '</ul>';
                 }
 
-                // c) Añadir la fuente
+                // Añadir la fuente
                 if (data.fuente) {
                     htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
                 }
                 
-                // 4. Asignar el HTML construido al chat
                 aiMessageDiv.innerHTML = htmlRespuesta;
                 chatWindow.appendChild(aiMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
             } catch (error) {
-                console.error("Error al obtener respuesta de la IA:", error);
+                console.error("Error completo:", error);
                 const errorMessageDiv = document.createElement('div');
                 errorMessageDiv.className = 'message ai-message';
-                errorMessageDiv.innerHTML = `<strong>AI:</strong> Lo siento, hubo un error al procesar tu solicitud. (${error.message})`;
+                errorMessageDiv.style.color = "#ff6b6b"; // Rojo suave para error
+                errorMessageDiv.innerHTML = `<strong>Error:</strong> No pude procesar la respuesta. <br><small>${error.message}</small>`;
                 chatWindow.appendChild(errorMessageDiv);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
 
@@ -338,3 +346,4 @@
     </script>
 </body>
 </html>
+
