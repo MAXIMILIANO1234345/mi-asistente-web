@@ -3,338 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente de Blender (AI)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Orquestador Blender AI</title>
+    
+    <!-- Fuentes y Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos para Código (Highlight.js) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+
     <style>
         :root {
-            --color-bg: #1a1a1e;
-            --color-container-bg: #25252d;
-            --color-chat-bg: #1e1e24;
-            --color-accent: #007bff;
-            --color-accent-hover: #0056b3;
-            --color-text-primary: #f0f0f0;
-            --color-text-secondary: #a0a0a0;
-            --color-border: #3a3a4a;
-            --color-shadow: rgba(0, 0, 0, 0.4);
+            --bg-app: #181818;
+            --bg-panel: #2b2b2b;
+            --bg-message-ai: #232323;
+            --bg-message-user: #373737;
+            --accent-blender: #e87d0d; /* Naranja Blender */
+            --text-main: #e6e6e6;
+            --text-dim: #b0b0b0;
+            --border: #3c3c3c;
+            --code-bg: #1e1e1e;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', sans-serif;
+            background-color: var(--bg-app);
+            color: var(--text-main);
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--bg-app);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+        /* HEADER */
+        header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
             align-items: center;
-            min-height: 100vh;
-            background-color: var(--color-bg);
-            color: var(--color-text-primary);
-            text-align: center;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            gap: 15px;
+            background-color: var(--bg-panel);
+        }
+
+        header i { font-size: 1.5rem; color: var(--accent-blender); }
+        header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; letter-spacing: 0.5px; }
+        .status-badge {
+            margin-left: auto;
+            font-size: 0.75rem;
+            background: #2d3f2f;
+            color: #4cd964;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #3a5c3d;
+        }
+
+        /* CHAT AREA */
+        #chat-window {
+            flex: 1;
             overflow-y: auto;
-        }
-
-        .container {
-            background-color: var(--color-container-bg);
-            padding: 30px 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px var(--color-shadow);
-            max-width: 800px;
-            width: 90%;
-            margin: 20px auto;
-            border: 1px solid var(--color-border);
-        }
-
-        .logo-container {
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .logo-container img {
-            max-width: 100px;
-            height: auto;
-            content: url('https://placehold.co/100x100/25252d/007bff?text=B');
-            border-radius: 50%;
-            border: 2px solid var(--color-accent);
-        }
-
-        h1 {
-            color: var(--color-text-primary);
-            font-size: 2.0em;
-            margin-bottom: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .chat-window {
-            background-color: var(--color-chat-bg);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--color-border);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-            text-align: left;
+            padding: 20px;
+            scroll-behavior: smooth;
         }
 
         .message {
-            margin-bottom: 12px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
         }
 
-        .message strong {
-            color: var(--color-accent);
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* USER MESSAGE */
+        .message.user {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .message.user .bubble {
+            background-color: var(--bg-message-user);
+            padding: 10px 15px;
+            border-radius: 12px 12px 2px 12px;
+            max-width: 80%;
+            font-size: 0.95rem;
+        }
+
+        /* AI MESSAGE STRUCTURE */
+        .message.ai {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            max-width: 95%;
+        }
+
+        .ai-avatar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--accent-blender);
+            margin-bottom: 8px;
             font-weight: 600;
         }
 
-        .user-message {
-            color: var(--color-text-primary);
+        .ai-content {
+            background-color: var(--bg-message-ai);
+            border: 1px solid var(--border);
+            border-radius: 0 12px 12px 12px;
+            padding: 20px;
+            width: 100%;
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
-        .ai-message {
-            color: var(--color-text-primary);
+        /* MARKDOWN STYLES */
+        .ai-content p { margin-top: 0; }
+        .ai-content code {
+            background: #333;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
         }
-        
-        /* Estilos para la respuesta estructurada de la IA (v10+) */
-        .ai-message p {
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-        .ai-message ul {
-            margin-left: 20px;
-            padding-left: 0;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            list-style-type: disc;
-        }
-        .ai-message li {
-            margin-bottom: 8px;
-        }
-        .ai-message .fuente {
-            font-size: 0.8em;
-            opacity: 0.7;
-            margin-top: 15px;
-            border-top: 1px solid var(--color-border);
-            padding-top: 8px;
-        }
-        
-        /* --- ESTILO PARA IMÁGENES EN EL CHAT --- */
-        .chat-image {
-            max-width: 90%;
+        .ai-content pre {
+            background: var(--code-bg) !important;
+            padding: 15px;
             border-radius: 8px;
-            border: 1px solid var(--color-border);
-            margin-top: 10px;
-            cursor: pointer;
-            transition: transform 0.2s;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            margin: 15px 0;
         }
-        .chat-image:hover {
-            transform: scale(1.02);
+
+        /* KNOWLEDGE CARDS GRID */
+        .knowledge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+
+        .knowledge-card {
+            background-color: #2a2a2a;
+            border-left: 3px solid var(--accent-blender);
+            padding: 12px 15px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .k-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .k-body {
+            font-size: 0.9rem;
+        }
+        
+        .k-body code {
+            display: block;
+            margin-top: 5px;
+            white-space: pre-wrap;
+            color: #9cdcfe; /* Azul código */
+        }
+
+        .source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #666;
+            background: #222;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* INPUT AREA */
+        .input-area {
+            padding: 20px;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
         }
 
         textarea {
-            width: 100%;
+            flex: 1;
+            background-color: var(--bg-app);
+            border: 1px solid var(--border);
+            color: white;
             padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid var(--color-border);
             border-radius: 8px;
-            background-color: var(--color-chat-bg);
-            color: var(--color-text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 1em;
-            resize: vertical;
-            min-height: 50px;
-            box-sizing: border-box; 
+            resize: none;
+            height: 50px;
+            font-family: inherit;
         }
-
-        textarea::placeholder {
-            color: var(--color-text-secondary);
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--color-accent);
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-        }
+        textarea:focus { outline: 1px solid var(--accent-blender); }
 
         button {
-            background-color: var(--color-accent);
-            color: var(--color-text-primary);
+            background-color: var(--accent-blender);
+            color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 0 25px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 1.1em;
             font-weight: 600;
-            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 10px var(--color-shadow);
+            transition: 0.2s;
         }
+        button:hover { background-color: #d6730b; }
+        button:disabled { background-color: #555; cursor: wait; }
 
-        button:hover {
-            background-color: var(--color-accent-hover);
-            transform: translateY(-2px);
-        }
-
-        button:disabled {
-            background-color: #555;
-            color: #999;
-            cursor: not-allowed;
-            transform: translateY(0);
-        }
-
-        .loading-spinner {
-            border: 4px solid var(--color-border);
-            border-top: 4px solid var(--color-accent);
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-            display: none; 
-        }
-
-        .loading-spinner.active {
-            display: block;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 600px) {
-            .container { padding: 20px 25px; margin: 10px auto; width: 95%; }
-            h1 { font-size: 1.8em; }
-            textarea { font-size: 0.9em; min-height: 40px; }
-            button { font-size: 1em; padding: 10px 20px; }
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo-container">
-            <img src="https" alt="Logo Asistente AI">
-        </div>
-        <h1>Asistente de Blender</h1>
-        <div class="chat-window" id="chatWindow">
-            <div class="message ai-message">
-                <strong>AI:</strong> Hola! Soy tu asistente para el manual de Blender. ¿En qué puedo ayudarte hoy?
+
+    <div class="main-container">
+        <header>
+            <i class="fa-solid fa-cube"></i> <!-- Icono Blender -->
+            <div>
+                <h1>Orquestador IA</h1>
+                <span style="font-size: 0.8rem; color: #888;">Blender 4.2 API Compatible</span>
+            </div>
+            <div class="status-badge"><i class="fa-solid fa-circle-check"></i> Online</div>
+        </header>
+
+        <div id="chat-window">
+            <!-- Mensaje de Bienvenida -->
+            <div class="message ai">
+                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Orquestador</div>
+                <div class="ai-content">
+                    <p>Hola. Soy tu asistente técnico conectado a la base de datos de conocimiento de Blender.</p>
+                    <p>Puedo consultar mi memoria interna o investigar en tiempo real. ¿Qué deseas crear hoy?</p>
+                </div>
             </div>
         </div>
-        <textarea id="userQuestion" placeholder="Escribe tu pregunta sobre Blender aquí..."></textarea>
-        <button id="sendButton">Enviar</button>
-        <div class="loading-spinner" id="loadingSpinner"></div>
+
+        <div class="input-area">
+            <textarea id="user-input" placeholder="Ej: Cómo creo un cubo rojo con Python?"></textarea>
+            <button id="send-btn">Enviar</button>
+        </div>
     </div>
 
-   <script>
-        const chatWindow = document.getElementById('chatWindow');
-        const userQuestionInput = document.getElementById('userQuestion');
-        const sendButton = document.getElementById('sendButton');
-        const loadingSpinner = document.getElementById('loadingSpinner');
+    <!-- Scripts: Marked (Markdown) y Highlight.js (Código) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
 
-        // URL DE TU BACKEND
-        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; 
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; // TU URL
 
-        function parsearRespuesta(texto) {
-            if (!texto) return "";
-            const regex = /\[Imagen relevante disponible en: (https?:\/\/[^\s]+)\]/g;
-            return texto.replace(regex, (match, url) => {
-                return `<br><a href="${url}" target="_blank" title="Haz clic para ver la imagen completa">
-                            <img src="${url}" alt="Imagen del Manual" class="chat-image">
-                        </a>`;
-            });
-        }
+        // Configuración de Marked (Markdown)
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'python';
+                return highlight.highlight(code, { language }).value;
+            }
+        });
 
-        sendButton.addEventListener('click', sendMessage);
-        userQuestionInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { 
-                e.preventDefault(); 
+        // Event Listeners
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         });
 
         async function sendMessage() {
-            const question = userQuestionInput.value.trim();
-            if (!question) return;
+            const text = userInput.value.trim();
+            if (!text) return;
 
-            // Renderizar mensaje usuario
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user-message';
-            const safeQuestion = question.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            userMessageDiv.innerHTML = `<strong>Tú:</strong> ${safeQuestion}`;
-            chatWindow.appendChild(userMessageDiv);
-            chatWindow.scrollTop = chatWindow.scrollHeight; 
-
-            userQuestionInput.value = ''; 
-            sendButton.disabled = true; 
-            loadingSpinner.classList.add('active'); 
+            // 1. Mostrar mensaje Usuario
+            appendUserMessage(text);
+            userInput.value = '';
+            sendBtn.disabled = true;
+            sendBtn.innerText = '...';
 
             try {
+                // 2. Llamada al API
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pregunta: question }),
+                    body: JSON.stringify({ pregunta: text })
                 });
 
-                if (!response.ok) throw new Error(`Error API: ${response.status}`);
+                if (!response.ok) throw new Error("Error en servidor");
+                const data = await response.json();
 
-                const data = await response.json(); 
-                console.log("Datos recibidos:", data); 
-
-                const aiMessageDiv = document.createElement('div');
-                aiMessageDiv.className = 'message ai-message';
-
-                let htmlRespuesta = '<strong>AI:</strong>';
-
-                // 1. Respuesta Principal
-                if (data.respuesta_principal) {
-                    const textoRaw = String(data.respuesta_principal); 
-                    const parrafoPrincipal = parsearRespuesta(textoRaw.replace(/\n/g, '<br>'));
-                    htmlRespuesta += `<p>${parrafoPrincipal}</p>`;
-                }
-
-                // 2. Puntos Clave (FILTRADO INTELIGENTE)
-                if (data.puntos_clave && Array.isArray(data.puntos_clave)) {
-                    // Filtramos puntos que sean nulos, o cuya descripción sea muy corta o vacía
-                    const puntosValidos = data.puntos_clave.filter(p => p.descripcion && p.descripcion.length > 5);
-                    
-                    if (puntosValidos.length > 0) {
-                        htmlRespuesta += '<ul>';
-                        for (const punto of puntosValidos) {
-                            const descripcion = parsearRespuesta(punto.descripcion.replace(/\n/g, '<br>'));
-                            // Si no hay título, ponemos "Nota"
-                            const titulo = punto.titulo || "Nota";
-                            htmlRespuesta += `<li><strong>${titulo}:</strong> ${descripcion}</li>`;
-                        }
-                        htmlRespuesta += '</ul>';
-                    }
-                }
-
-                // 3. Fuente
-                if (data.fuente) {
-                    htmlRespuesta += `<p class="fuente"><em>Fuente: ${data.fuente}</em></p>`;
-                }
-                
-                aiMessageDiv.innerHTML = htmlRespuesta;
-                chatWindow.appendChild(aiMessageDiv);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                // 3. Renderizar Respuesta Estructurada
+                appendAIMessage(data);
 
             } catch (error) {
+                appendErrorMessage();
                 console.error(error);
-                const errorMessageDiv = document.createElement('div');
-                errorMessageDiv.className = 'message ai-message';
-                errorMessageDiv.style.color = "#ff6b6b";
-                errorMessageDiv.innerHTML = `<strong>Error:</strong> Algo salió mal.`;
-                chatWindow.appendChild(errorMessageDiv);
             } finally {
-                sendButton.disabled = false; 
-                loadingSpinner.classList.remove('active'); 
+                sendBtn.disabled = false;
+                sendBtn.innerText = 'Enviar';
+                scrollToBottom();
             }
+        }
+
+        function appendUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'message user';
+            div.innerHTML = `<div class="bubble">${text}</div>`;
+            chatWindow.appendChild(div);
+            scrollToBottom();
+        }
+
+        function appendAIMessage(data) {
+            const div = document.createElement('div');
+            div.className = 'message ai';
+
+            // Determinar Icono de Fuente
+            const esMemoria = data.fuente && data.fuente.includes("Memoria");
+            const iconoFuente = esMemoria ? '<i class="fa-solid fa-brain"></i>' : '<i class="fa-solid fa-globe"></i>';
+            const colorFuente = esMemoria ? '#4cd964' : '#4cc2d9';
+
+            // Procesar Puntos Clave en HTML de Tarjetas
+            let gridHTML = '';
+            if (data.puntos_clave && data.puntos_clave.length > 0) {
+                gridHTML = `<div class="knowledge-grid">`;
+                data.puntos_clave.forEach(punto => {
+                    // Detectar si es código
+                    const esCodigo = punto.titulo.toLowerCase().includes("código") || punto.titulo.toLowerCase().includes("script");
+                    const icon = esCodigo ? '<i class="fa-brands fa-python"></i>' : '<i class="fa-solid fa-lightbulb"></i>';
+                    
+                    let contenido = punto.descripcion;
+                    if (esCodigo) {
+                        // Resaltado simple para tarjetas pequeñas
+                        contenido = `<code>${punto.descripcion}</code>`;
+                    }
+
+                    gridHTML += `
+                        <div class="knowledge-card">
+                            <div class="k-title">${icon} ${punto.titulo}</div>
+                            <div class="k-body">${contenido}</div>
+                        </div>
+                    `;
+                });
+                gridHTML += `</div>`;
+            }
+
+            // Renderizar contenido principal con Markdown
+            const mainContent = marked.parse(data.respuesta_principal || "");
+
+            div.innerHTML = `
+                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Orquestador</div>
+                <div class="ai-content">
+                    ${mainContent}
+                    ${gridHTML}
+                    <div class="source-tag" style="color: ${colorFuente}">
+                        ${iconoFuente} Fuente: ${data.fuente || "Desconocida"}
+                    </div>
+                </div>
+            `;
+
+            chatWindow.appendChild(div);
+            
+            // Aplicar resaltado de sintaxis a los bloques de código generados por Markdown
+            div.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        function appendErrorMessage() {
+            const div = document.createElement('div');
+            div.className = 'message ai';
+            div.innerHTML = `
+                <div class="ai-content" style="border-color: #ff4444;">
+                    <p style="color: #ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error de conexión con el Orquestador.</p>
+                </div>`;
+            chatWindow.appendChild(div);
+        }
+
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
     </script>
 </body>
 </html>
-
-
