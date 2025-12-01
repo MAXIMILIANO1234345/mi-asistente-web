@@ -125,6 +125,7 @@
             width: 100%;
             font-size: 0.95rem;
             line-height: 1.6;
+            color: var(--text-main); /* Forzar color de texto */
         }
 
         /* MARKDOWN STYLES */
@@ -312,6 +313,7 @@
 
                 if (!response.ok) throw new Error("Error en servidor");
                 const data = await response.json();
+                console.log("Respuesta recibida:", data); // Debug en consola
 
                 // 3. Renderizar Respuesta Estructurada
                 appendAIMessage(data);
@@ -368,8 +370,12 @@
                 gridHTML += `</div>`;
             }
 
+            // BLINDAJE: Detectar texto en cualquiera de los formatos posibles
+            // Esto arregla el problema de "texto invisible"
+            const rawText = data.respuesta_principal || data.respuesta || "⚠️ La IA respondió, pero el formato no contiene texto legible.";
+
             // Renderizar contenido principal con Markdown
-            const mainContent = marked.parse(data.respuesta_principal || "");
+            const mainContent = marked.parse(rawText);
 
             div.innerHTML = `
                 <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Orquestador</div>
