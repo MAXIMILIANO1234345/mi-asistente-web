@@ -1,15 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orquestador Blender AI - V30 Client</title>
-    
-    <!-- Fuentes y Iconos -->
+<!-- Fuentes y Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Estilos para Código (Highlight.js) -->
+    <!-- Estilos para Código (Highlight.js Atom One Dark) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
 
     <style>
@@ -96,11 +89,12 @@
         }
         .message.user .bubble {
             background-color: var(--bg-message-user);
-            padding: 10px 15px;
+            padding: 12px 18px;
             border-radius: 12px 12px 2px 12px;
             max-width: 80%;
             font-size: 0.95rem;
             border: 1px solid #444;
+            line-height: 1.5;
         }
 
         /* AI MESSAGE STRUCTURE */
@@ -108,7 +102,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            max-width: 95%;
+            max-width: 95%; /* Más ancho para código */
         }
 
         .ai-avatar {
@@ -125,33 +119,46 @@
             background-color: var(--bg-message-ai);
             border: 1px solid var(--border);
             border-radius: 0 12px 12px 12px;
-            padding: 20px;
+            padding: 25px; /* Más padding para lectura cómoda */
             width: 100%;
-            font-size: 0.95rem;
-            line-height: 1.6;
+            font-size: 1rem; /* Texto un poco más grande */
+            line-height: 1.7; /* Mejor interlineado para lectura */
             color: var(--text-main);
         }
 
-        /* MARKDOWN STYLES */
-        .ai-content p { margin-top: 0; margin-bottom: 1rem; }
-        .ai-content p:last-child { margin-bottom: 0; }
+        /* MARKDOWN STYLES (Optimizados para Raw Text) */
+        .ai-content h1, .ai-content h2, .ai-content h3 { 
+            color: white; 
+            margin-top: 1.5em; 
+            margin-bottom: 0.5em; 
+            font-weight: 600;
+        }
+        .ai-content h1:first-child, .ai-content h2:first-child { margin-top: 0; }
         
-        .ai-content code {
+        .ai-content p { margin-top: 0; margin-bottom: 1em; }
+        .ai-content ul, .ai-content ol { margin-bottom: 1em; padding-left: 25px; }
+        .ai-content li { margin-bottom: 0.5em; }
+
+        /* Estilos de Código Inline */
+        .ai-content :not(pre) > code {
             background: #333;
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85em;
-            color: #e06c75;
+            color: #e5c07b; /* Amarillo suave */
+            border: 1px solid #444;
         }
         
+        /* Bloques de Código */
         .ai-content pre {
             background: var(--code-bg) !important;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border);
             overflow-x: auto;
-            margin: 15px 0;
+            margin: 20px 0;
+            position: relative;
         }
         
         .ai-content pre code {
@@ -159,51 +166,21 @@
             padding: 0;
             color: inherit;
             font-size: 0.9em;
+            font-family: 'JetBrains Mono', monospace;
         }
-
-        /* KNOWLEDGE CARDS GRID */
-        .knowledge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-            border-top: 1px solid var(--border);
-            padding-top: 15px;
-        }
-
-        .knowledge-card {
-            background-color: #2a2a2a;
-            border-left: 3px solid var(--accent-blender);
-            padding: 12px 15px;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .k-title {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .k-body { font-size: 0.9rem; color: #ccc; }
 
         .source-tag {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 0.75rem;
             color: #888;
             background: #1a1a1a;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
             border: 1px solid #333;
+            opacity: 0.8;
         }
 
         /* INPUT AREA */
@@ -221,11 +198,12 @@
             background-color: var(--bg-app);
             border: 1px solid var(--border);
             color: white;
-            padding: 12px;
+            padding: 15px;
             border-radius: 8px;
             resize: none;
-            height: 50px;
+            height: 60px;
             font-family: inherit;
+            font-size: 0.95rem;
             transition: border-color 0.2s;
         }
         textarea:focus { outline: none; border-color: var(--accent-blender); }
@@ -234,25 +212,26 @@
             background-color: var(--accent-blender);
             color: white;
             border: none;
-            padding: 0 25px;
+            padding: 0 30px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            height: 50px;
+            height: 60px;
             transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            min-width: 100px;
+            gap: 10px;
+            min-width: 120px;
+            font-size: 1rem;
         }
         button:hover { background-color: #d6730b; }
         button:disabled { background-color: #444; cursor: not-allowed; opacity: 0.7; }
 
         /* LOADING SPINNER */
         .spinner {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: #fff;
@@ -269,8 +248,8 @@
         <header>
             <i class="fa-solid fa-cube"></i>
             <div>
-                <h1>Orquestador IA <span style="font-size: 0.8rem; opacity: 0.7;">V30</span></h1>
-                <span style="font-size: 0.8rem; color: #888;">Gemma Local + Maestro Remoto</span>
+                <h1>Orquestador IA <span style="font-size: 0.8rem; opacity: 0.7;">V31</span></h1>
+                <span style="font-size: 0.8rem; color: #888;">Gemma Local (Raw Mode)</span>
             </div>
             <div class="status-badge" id="status-badge">
                 <i class="fa-solid fa-circle"></i> Conectado
@@ -281,14 +260,14 @@
             <div class="message ai">
                 <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
                 <div class="ai-content">
-                    <p><strong>Orquestador V30 en línea.</strong></p>
-                    <p>Estoy conectado a tu cerebro local (Gemma) y sincronizado con el Maestro. Puedo tardar unos segundos si estoy "despertando" a tu PC. ¿Qué script de Blender necesitas?</p>
+                    <p><strong>Modo de Respuesta Directa (V31) activado.</strong></p>
+                    <p>Estoy recibiendo la señal pura de tu modelo Gemma local. Esto evita cortes y errores de formato. ¿En qué te ayudo con Blender hoy?</p>
                 </div>
             </div>
         </div>
 
         <div class="input-area">
-            <textarea id="user-input" placeholder="Ej: Escribe un script para crear 50 cubos aleatorios..."></textarea>
+            <textarea id="user-input" placeholder="Pregunta sobre scripts de Python en Blender..."></textarea>
             <button id="send-btn">
                 <span class="btn-text">Enviar</span>
                 <div class="spinner"></div>
@@ -303,7 +282,7 @@
 
     <script>
         // ==========================================
-        // ⚠️ CONFIGURACIÓN: PEGA TU URL DE RENDER AQUÍ
+        // ⚠️ CONFIGURACIÓN: URL DEL BACKEND
         // ==========================================
         const RENDER_URL = "https://mi-backend-ia-2.onrender.com"; 
         const API_ENDPOINT = `${RENDER_URL}/preguntar`;
@@ -317,10 +296,12 @@
         // Configurar Markdown
         marked.setOptions({
             highlight: function(code, lang) {
+                // Forzamos Python si no se detecta lenguaje, común en Blender
                 const language = highlight.getLanguage(lang) ? lang : 'python';
                 return highlight.highlight(code, { language }).value;
             },
-            breaks: true
+            breaks: true, // Enter crea salto de línea
+            gfm: true // GitHub Flavored Markdown (tablas, listas, etc)
         });
 
         // Listeners
@@ -344,9 +325,8 @@
             setLoading(true);
 
             try {
-                // Validación básica de URL
                 if(RENDER_URL.includes("tu-app-en-render")) {
-                    throw new Error("⚠️ Por favor configura la variable RENDER_URL en el código HTML con tu dirección real.");
+                    throw new Error("⚠️ Configura la URL real en el HTML.");
                 }
 
                 console.log("📡 Enviando a:", API_ENDPOINT);
@@ -362,9 +342,9 @@
                 }
 
                 const data = await response.json();
-                console.log("✅ Respuesta del Orquestador:", data);
+                console.log("✅ Respuesta V31:", data);
 
-                // Renderizar Respuesta IA
+                // Renderizar Respuesta IA (Raw)
                 appendAIMessage(data);
 
             } catch (error) {
@@ -382,10 +362,12 @@
                 btnText.style.display = 'none';
                 spinner.style.display = 'block';
                 userInput.disabled = true;
+                userInput.style.opacity = "0.7";
             } else {
                 btnText.style.display = 'block';
                 spinner.style.display = 'none';
                 userInput.disabled = false;
+                userInput.style.opacity = "1";
                 userInput.focus();
             }
         }
@@ -415,37 +397,19 @@
             if (esLocal) colorFuente = '#e87d0d';   // Naranja
 
             // 2. Procesar Texto Principal (Markdown)
-            // app.py V30 devuelve 'respuesta_principal'
-            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ Respuesta vacía.";
+            // En V31, 'respuesta_principal' contiene todo el texto formateado
+            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ La IA devolvió una respuesta vacía.";
+            
+            // Parsear Markdown a HTML
             const htmlContent = marked.parse(rawContent);
 
-            // 3. Procesar Tarjetas (Puntos Clave)
-            let cardsHTML = '';
-            if (Array.isArray(data.puntos_clave) && data.puntos_clave.length > 0) {
-                cardsHTML = `<div class="knowledge-grid">`;
-                data.puntos_clave.forEach(p => {
-                    // Blindaje: a veces el LLM devuelve strings en vez de objetos
-                    const titulo = p.titulo || "Nota";
-                    const desc = p.descripcion || (typeof p === 'string' ? p : "");
-                    
-                    const esCode = titulo.toLowerCase().includes("código") || titulo.toLowerCase().includes("python");
-                    const icon = esCode ? '<i class="fa-brands fa-python"></i>' : '<i class="fa-solid fa-lightbulb"></i>';
-
-                    cardsHTML += `
-                        <div class="knowledge-card">
-                            <div class="k-title">${icon} ${titulo}</div>
-                            <div class="k-body">${esCode ? `<code>${desc}</code>` : desc}</div>
-                        </div>
-                    `;
-                });
-                cardsHTML += `</div>`;
-            }
+            // Nota: Ya no buscamos 'puntos_clave' porque en V31 los eliminamos para velocidad.
+            // Toda la info está en htmlContent.
 
             div.innerHTML = `
                 <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador</div>
                 <div class="ai-content">
                     ${htmlContent}
-                    ${cardsHTML}
                     <div class="source-tag" style="border-color: ${colorFuente}; color: ${colorFuente};">
                         <i class="fa-solid fa-server"></i> Fuente: ${fuente}
                     </div>
@@ -454,7 +418,7 @@
 
             chatWindow.appendChild(div);
             
-            // Re-aplicar highlight.js
+            // Re-aplicar highlight.js a los bloques de código nuevos
             div.querySelectorAll('pre code').forEach((el) => {
                 hljs.highlightElement(el);
             });
@@ -465,11 +429,10 @@
             div.className = 'message ai';
             div.innerHTML = `
                 <div class="ai-content" style="border-color: #ff4444; background: #2a1a1a;">
-                    <p style="color: #ff6b6b; font-weight: bold;">
+                    <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 5px;">
                         <i class="fa-solid fa-triangle-exclamation"></i> Error de Conexión
                     </p>
                     <p style="color: #e6e6e6;">${msg}</p>
-                    <p style="font-size: 0.8em; color: #999;">Verifica que la URL de Render en el código HTML sea correcta y que el servicio esté activo.</p>
                 </div>`;
             chatWindow.appendChild(div);
         }
@@ -480,4 +443,3 @@
     </script>
 </body>
 </html>
-
