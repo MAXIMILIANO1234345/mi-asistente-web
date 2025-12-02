@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orquestador Blender AI</title>
+    <title>Orquestador Blender AI - V30 Client</title>
     
     <!-- Fuentes y Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -68,6 +68,9 @@
             padding: 4px 8px;
             border-radius: 4px;
             border: 1px solid #3a5c3d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* CHAT AREA */
@@ -97,6 +100,7 @@
             border-radius: 12px 12px 2px 12px;
             max-width: 80%;
             font-size: 0.95rem;
+            border: 1px solid #444;
         }
 
         /* AI MESSAGE STRUCTURE */
@@ -125,18 +129,22 @@
             width: 100%;
             font-size: 0.95rem;
             line-height: 1.6;
-            color: var(--text-main); /* Forzar color de texto */
+            color: var(--text-main);
         }
 
         /* MARKDOWN STYLES */
-        .ai-content p { margin-top: 0; }
+        .ai-content p { margin-top: 0; margin-bottom: 1rem; }
+        .ai-content p:last-child { margin-bottom: 0; }
+        
         .ai-content code {
             background: #333;
             padding: 2px 5px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85em;
+            color: #e06c75;
         }
+        
         .ai-content pre {
             background: var(--code-bg) !important;
             padding: 15px;
@@ -144,6 +152,13 @@
             border: 1px solid var(--border);
             overflow-x: auto;
             margin: 15px 0;
+        }
+        
+        .ai-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: 0.9em;
         }
 
         /* KNOWLEDGE CARDS GRID */
@@ -176,16 +191,7 @@
             gap: 8px;
         }
 
-        .k-body {
-            font-size: 0.9rem;
-        }
-        
-        .k-body code {
-            display: block;
-            margin-top: 5px;
-            white-space: pre-wrap;
-            color: #9cdcfe; /* Azul código */
-        }
+        .k-body { font-size: 0.9rem; color: #ccc; }
 
         .source-tag {
             display: inline-flex;
@@ -193,10 +199,11 @@
             gap: 6px;
             margin-top: 15px;
             font-size: 0.75rem;
-            color: #666;
-            background: #222;
+            color: #888;
+            background: #1a1a1a;
             padding: 4px 10px;
             border-radius: 20px;
+            border: 1px solid #333;
         }
 
         /* INPUT AREA */
@@ -206,6 +213,7 @@
             border-top: 1px solid var(--border);
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         textarea {
@@ -218,8 +226,9 @@
             resize: none;
             height: 50px;
             font-family: inherit;
+            transition: border-color 0.2s;
         }
-        textarea:focus { outline: 1px solid var(--accent-blender); }
+        textarea:focus { outline: none; border-color: var(--accent-blender); }
 
         button {
             background-color: var(--accent-blender);
@@ -229,10 +238,28 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            height: 50px;
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 100px;
         }
         button:hover { background-color: #d6730b; }
-        button:disabled { background-color: #555; cursor: wait; }
+        button:disabled { background-color: #444; cursor: not-allowed; opacity: 0.7; }
+
+        /* LOADING SPINNER */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
     </style>
 </head>
@@ -240,51 +267,63 @@
 
     <div class="main-container">
         <header>
-            <i class="fa-solid fa-cube"></i> <!-- Icono Blender -->
+            <i class="fa-solid fa-cube"></i>
             <div>
-                <h1>Orquestador IA</h1>
-                <span style="font-size: 0.8rem; color: #888;">Blender 4.2 API Compatible</span>
+                <h1>Orquestador IA <span style="font-size: 0.8rem; opacity: 0.7;">V30</span></h1>
+                <span style="font-size: 0.8rem; color: #888;">Gemma Local + Maestro Remoto</span>
             </div>
-            <div class="status-badge"><i class="fa-solid fa-circle-check"></i> Online</div>
+            <div class="status-badge" id="status-badge">
+                <i class="fa-solid fa-circle"></i> Conectado
+            </div>
         </header>
 
         <div id="chat-window">
-            <!-- Mensaje de Bienvenida -->
             <div class="message ai">
-                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Orquestador</div>
+                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
                 <div class="ai-content">
-                    <p>Hola. Soy tu asistente técnico conectado a la base de datos de conocimiento de Blender.</p>
-                    <p>Puedo consultar mi memoria interna o investigar en tiempo real. ¿Qué deseas crear hoy?</p>
+                    <p><strong>Orquestador V30 en línea.</strong></p>
+                    <p>Estoy conectado a tu cerebro local (Gemma) y sincronizado con el Maestro. Puedo tardar unos segundos si estoy "despertando" a tu PC. ¿Qué script de Blender necesitas?</p>
                 </div>
             </div>
         </div>
 
         <div class="input-area">
-            <textarea id="user-input" placeholder="Ej: Cómo creo un cubo rojo con Python?"></textarea>
-            <button id="send-btn">Enviar</button>
+            <textarea id="user-input" placeholder="Ej: Escribe un script para crear 50 cubos aleatorios..."></textarea>
+            <button id="send-btn">
+                <span class="btn-text">Enviar</span>
+                <div class="spinner"></div>
+            </button>
         </div>
     </div>
 
-    <!-- Scripts: Marked (Markdown) y Highlight.js (Código) -->
+    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
 
     <script>
+        // ==========================================
+        // ⚠️ CONFIGURACIÓN: PEGA TU URL DE RENDER AQUÍ
+        // ==========================================
+        const RENDER_URL = "https://tu-app-en-render.onrender.com"; 
+        const API_ENDPOINT = `${RENDER_URL}/preguntar`;
+
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const API_URL = 'https://mi-backend-ia-2.onrender.com/preguntar'; // TU URL
+        const btnText = sendBtn.querySelector('.btn-text');
+        const spinner = sendBtn.querySelector('.spinner');
 
-        // Configuración de Marked (Markdown)
+        // Configurar Markdown
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = highlight.getLanguage(lang) ? lang : 'python';
                 return highlight.highlight(code, { language }).value;
-            }
+            },
+            breaks: true
         });
 
-        // Event Listeners
+        // Listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -297,41 +336,67 @@
             const text = userInput.value.trim();
             if (!text) return;
 
-            // 1. Mostrar mensaje Usuario
-            appendUserMessage(text);
+            // UI: Mensaje Usuario
+            appendMessage('user', text);
             userInput.value = '';
-            sendBtn.disabled = true;
-            sendBtn.innerText = '...';
+            
+            // UI: Estado Cargando
+            setLoading(true);
 
             try {
-                // 2. Llamada al API
-                const response = await fetch(API_URL, {
+                // Validación básica de URL
+                if(RENDER_URL.includes("tu-app-en-render")) {
+                    throw new Error("⚠️ Por favor configura la variable RENDER_URL en el código HTML con tu dirección real.");
+                }
+
+                console.log("📡 Enviando a:", API_ENDPOINT);
+                
+                const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pregunta: text })
                 });
 
-                if (!response.ok) throw new Error("Error en servidor");
-                const data = await response.json();
-                console.log("Respuesta recibida:", data); // Debug en consola
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
 
-                // 3. Renderizar Respuesta Estructurada
+                const data = await response.json();
+                console.log("✅ Respuesta del Orquestador:", data);
+
+                // Renderizar Respuesta IA
                 appendAIMessage(data);
 
             } catch (error) {
-                appendErrorMessage();
                 console.error(error);
+                appendErrorMessage(error.message);
             } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerText = 'Enviar';
+                setLoading(false);
                 scrollToBottom();
             }
         }
 
-        function appendUserMessage(text) {
+        function setLoading(isLoading) {
+            sendBtn.disabled = isLoading;
+            if (isLoading) {
+                btnText.style.display = 'none';
+                spinner.style.display = 'block';
+                userInput.disabled = true;
+            } else {
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        function appendMessage(role, text) {
             const div = document.createElement('div');
-            div.className = 'message user';
-            div.innerHTML = `<div class="bubble">${text}</div>`;
+            div.className = `message ${role}`;
+            
+            if (role === 'user') {
+                div.innerHTML = `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
+            }
             chatWindow.appendChild(div);
             scrollToBottom();
         }
@@ -340,68 +405,71 @@
             const div = document.createElement('div');
             div.className = 'message ai';
 
-            // Determinar Icono de Fuente
-            const esMemoria = data.fuente && data.fuente.includes("Memoria");
-            const iconoFuente = esMemoria ? '<i class="fa-solid fa-brain"></i>' : '<i class="fa-solid fa-globe"></i>';
-            const colorFuente = esMemoria ? '#4cd964' : '#4cc2d9';
+            // 1. Extraer Fuente
+            const fuente = data.fuente || "Desconocida";
+            const esMemoria = fuente.toLowerCase().includes("memoria");
+            const esLocal = fuente.toLowerCase().includes("local");
+            
+            let colorFuente = '#888';
+            if (esMemoria) colorFuente = '#4cd964'; // Verde
+            if (esLocal) colorFuente = '#e87d0d';   // Naranja
 
-            // Procesar Puntos Clave en HTML de Tarjetas
-            let gridHTML = '';
-            if (data.puntos_clave && data.puntos_clave.length > 0) {
-                gridHTML = `<div class="knowledge-grid">`;
-                data.puntos_clave.forEach(punto => {
-                    // Detectar si es código
-                    const esCodigo = punto.titulo.toLowerCase().includes("código") || punto.titulo.toLowerCase().includes("script");
-                    const icon = esCodigo ? '<i class="fa-brands fa-python"></i>' : '<i class="fa-solid fa-lightbulb"></i>';
+            // 2. Procesar Texto Principal (Markdown)
+            // app.py V30 devuelve 'respuesta_principal'
+            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ Respuesta vacía.";
+            const htmlContent = marked.parse(rawContent);
+
+            // 3. Procesar Tarjetas (Puntos Clave)
+            let cardsHTML = '';
+            if (Array.isArray(data.puntos_clave) && data.puntos_clave.length > 0) {
+                cardsHTML = `<div class="knowledge-grid">`;
+                data.puntos_clave.forEach(p => {
+                    // Blindaje: a veces el LLM devuelve strings en vez de objetos
+                    const titulo = p.titulo || "Nota";
+                    const desc = p.descripcion || (typeof p === 'string' ? p : "");
                     
-                    let contenido = punto.descripcion;
-                    if (esCodigo) {
-                        // Resaltado simple para tarjetas pequeñas
-                        contenido = `<code>${punto.descripcion}</code>`;
-                    }
+                    const esCode = titulo.toLowerCase().includes("código") || titulo.toLowerCase().includes("python");
+                    const icon = esCode ? '<i class="fa-brands fa-python"></i>' : '<i class="fa-solid fa-lightbulb"></i>';
 
-                    gridHTML += `
+                    cardsHTML += `
                         <div class="knowledge-card">
-                            <div class="k-title">${icon} ${punto.titulo}</div>
-                            <div class="k-body">${contenido}</div>
+                            <div class="k-title">${icon} ${titulo}</div>
+                            <div class="k-body">${esCode ? `<code>${desc}</code>` : desc}</div>
                         </div>
                     `;
                 });
-                gridHTML += `</div>`;
+                cardsHTML += `</div>`;
             }
 
-            // BLINDAJE: Detectar texto en cualquiera de los formatos posibles
-            // Esto arregla el problema de "texto invisible"
-            const rawText = data.respuesta_principal || data.respuesta || "⚠️ La IA respondió, pero el formato no contiene texto legible.";
-
-            // Renderizar contenido principal con Markdown
-            const mainContent = marked.parse(rawText);
-
             div.innerHTML = `
-                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Orquestador</div>
+                <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador</div>
                 <div class="ai-content">
-                    ${mainContent}
-                    ${gridHTML}
-                    <div class="source-tag" style="color: ${colorFuente}">
-                        ${iconoFuente} Fuente: ${data.fuente || "Desconocida"}
+                    ${htmlContent}
+                    ${cardsHTML}
+                    <div class="source-tag" style="border-color: ${colorFuente}; color: ${colorFuente};">
+                        <i class="fa-solid fa-server"></i> Fuente: ${fuente}
                     </div>
                 </div>
             `;
 
             chatWindow.appendChild(div);
             
-            // Aplicar resaltado de sintaxis a los bloques de código generados por Markdown
-            div.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
+            // Re-aplicar highlight.js
+            div.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
             });
         }
 
-        function appendErrorMessage() {
+        function appendErrorMessage(msg) {
             const div = document.createElement('div');
             div.className = 'message ai';
             div.innerHTML = `
-                <div class="ai-content" style="border-color: #ff4444;">
-                    <p style="color: #ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error de conexión con el Orquestador.</p>
+                <div class="ai-content" style="border-color: #ff4444; background: #2a1a1a;">
+                    <p style="color: #ff6b6b; font-weight: bold;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Error de Conexión
+                    </p>
+                    <p style="color: #e6e6e6;">${msg}</p>
+                    <p style="font-size: 0.8em; color: #999;">Verifica que la URL de Render en el código HTML sea correcta y que el servicio esté activo.</p>
                 </div>`;
             chatWindow.appendChild(div);
         }
