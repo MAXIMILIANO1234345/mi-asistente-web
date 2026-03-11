@@ -1,9 +1,16 @@
-<!-- Fuentes y Iconos -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orquestador IA - Blender Mode</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Estilos para Código (Highlight.js Atom One Dark) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
     <style>
         :root {
@@ -11,7 +18,7 @@
             --bg-panel: #2b2b2b;
             --bg-message-ai: #232323;
             --bg-message-user: #373737;
-            --accent-blender: #e87d0d; /* Naranja Blender */
+            --accent-blender: #e87d0d;
             --text-main: #e6e6e6;
             --text-dim: #b0b0b0;
             --border: #3c3c3c;
@@ -26,19 +33,33 @@
             color: var(--text-main);
             margin: 0;
             display: flex;
-            justify-content: center;
             height: 100vh;
             overflow: hidden;
         }
 
-        .main-container {
-            width: 100%;
-            max-width: 1000px;
+        /* LAYOUT DIVIDIDO */
+        .app-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* SECCIÓN DEL CHAT (Izquierda) */
+        .chat-section {
+            width: 400px;
+            min-width: 350px;
             background-color: var(--bg-app);
             display: flex;
             flex-direction: column;
-            height: 100%;
+            border-right: 2px solid var(--border);
+            z-index: 10;
+        }
+
+        /* SECCIÓN DEL VIEWPORT 3D (Derecha) */
+        .viewport-section {
+            flex: 1;
             position: relative;
+            background-color: #242424; /* Color similar al viewport de Blender */
         }
 
         /* HEADER */
@@ -52,7 +73,8 @@
         }
 
         header i { font-size: 1.5rem; color: var(--accent-blender); }
-        header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; letter-spacing: 0.5px; }
+        header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; }
+        
         .status-badge {
             margin-left: auto;
             font-size: 0.75rem;
@@ -74,137 +96,70 @@
             scroll-behavior: smooth;
         }
 
-        .message {
-            margin-bottom: 25px;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards;
-        }
-
-        @keyframes fadeIn { to { opacity: 1; } }
+        .message { margin-bottom: 25px; animation: fadeIn 0.3s forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* USER MESSAGE */
-        .message.user {
-            display: flex;
-            justify-content: flex-end;
-        }
+        .message.user { display: flex; justify-content: flex-end; }
         .message.user .bubble {
             background-color: var(--bg-message-user);
             padding: 12px 18px;
             border-radius: 12px 12px 2px 12px;
-            max-width: 80%;
+            max-width: 90%;
             font-size: 0.95rem;
             border: 1px solid #444;
             line-height: 1.5;
         }
 
-        /* AI MESSAGE STRUCTURE */
-        .message.ai {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            max-width: 95%; /* Más ancho para código */
-        }
-
-        .ai-avatar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: var(--accent-blender);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
+        /* AI MESSAGE */
+        .message.ai { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
+        .ai-avatar { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--accent-blender); margin-bottom: 8px; font-weight: 600; }
         .ai-content {
             background-color: var(--bg-message-ai);
             border: 1px solid var(--border);
             border-radius: 0 12px 12px 12px;
-            padding: 25px; /* Más padding para lectura cómoda */
+            padding: 20px;
             width: 100%;
-            font-size: 1rem; /* Texto un poco más grande */
-            line-height: 1.7; /* Mejor interlineado para lectura */
-            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.6;
         }
 
-        /* MARKDOWN STYLES (Optimizados para Raw Text) */
-        .ai-content h1, .ai-content h2, .ai-content h3 { 
-            color: white; 
-            margin-top: 1.5em; 
-            margin-bottom: 0.5em; 
-            font-weight: 600;
-        }
-        .ai-content h1:first-child, .ai-content h2:first-child { margin-top: 0; }
-        
-        .ai-content p { margin-top: 0; margin-bottom: 1em; }
-        .ai-content ul, .ai-content ol { margin-bottom: 1em; padding-left: 25px; }
-        .ai-content li { margin-bottom: 0.5em; }
-
-        /* Estilos de Código Inline */
-        .ai-content :not(pre) > code {
-            background: #333;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85em;
-            color: #e5c07b; /* Amarillo suave */
-            border: 1px solid #444;
-        }
-        
-        /* Bloques de Código */
+        /* MARKDOWN */
+        .ai-content h1, .ai-content h2, .ai-content h3 { color: white; margin-top: 1em; margin-bottom: 0.5em; }
         .ai-content pre {
             background: var(--code-bg) !important;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border);
             overflow-x: auto;
-            margin: 20px 0;
-            position: relative;
+            margin: 15px 0;
         }
-        
-        .ai-content pre code {
-            background: transparent;
-            padding: 0;
-            color: inherit;
-            font-size: 0.9em;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .source-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #888;
-            background: #1a1a1a;
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid #333;
-            opacity: 0.8;
+        .ai-content :not(pre) > code {
+            background: #333; padding: 2px 6px; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; color: #e5c07b;
         }
 
         /* INPUT AREA */
         .input-area {
-            padding: 20px;
+            padding: 15px;
             background-color: var(--bg-panel);
             border-top: 1px solid var(--border);
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            align-items: center;
         }
 
         textarea {
-            flex: 1;
+            width: 100%;
             background-color: var(--bg-app);
             border: 1px solid var(--border);
             color: white;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             resize: none;
-            height: 60px;
+            height: 80px;
             font-family: inherit;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
+            transition: 0.2s;
         }
         textarea:focus { outline: none; border-color: var(--accent-blender); }
 
@@ -212,78 +167,106 @@
             background-color: var(--accent-blender);
             color: white;
             border: none;
-            padding: 0 30px;
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            height: 60px;
             transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            min-width: 120px;
-            font-size: 1rem;
         }
         button:hover { background-color: #d6730b; }
-        button:disabled { background-color: #444; cursor: not-allowed; opacity: 0.7; }
+        button:disabled { background-color: #444; cursor: not-allowed; }
 
-        /* LOADING SPINNER */
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            display: none;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: #fff; animation: spin 1s infinite linear; display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* OVERLAY 3D CONTROLS */
+        .viewport-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: white;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
 
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <header>
-            <i class="fa-solid fa-cube"></i>
-            <div>
-                <h1>Orquestador IA <span style="font-size: 0.8rem; opacity: 0.7;">V31</span></h1>
-                <span style="font-size: 0.8rem; color: #888;">Gemma Local (Raw Mode)</span>
-            </div>
-            <div class="status-badge" id="status-badge">
-                <i class="fa-solid fa-circle"></i> Conectado
-            </div>
-        </header>
+    <div class="app-layout">
+        
+        <div class="chat-section">
+            <header>
+                <i class="fa-solid fa-cube"></i>
+                <div>
+                    <h1>Orquestador IA</h1>
+                    <span style="font-size: 0.8rem; color: #888;">Gemma + A-Frame Viewport</span>
+                </div>
+                <div class="status-badge" id="status-badge">
+                    <i class="fa-solid fa-circle"></i> Local
+                </div>
+            </header>
 
-        <div id="chat-window">
-            <div class="message ai">
-                <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
-                <div class="ai-content">
-                    <p><strong>Modo de Respuesta Directa (V31) activado.</strong></p>
-                    <p>Estoy recibiendo la señal pura de tu modelo Gemma local. Esto evita cortes y errores de formato. ¿En qué te ayudo con Blender hoy?</p>
+            <div id="chat-window">
+                <div class="message ai">
+                    <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
+                    <div class="ai-content">
+                        <p><strong>Entorno 3D activado.</strong></p>
+                        <p>Pídeme que cree figuras, por ejemplo: <em>"Crea una esfera roja"</em> o <em>"Añade un cilindro azul"</em>, y verás los resultados en el viewport de la derecha.</p>
+                    </div>
                 </div>
             </div>
+
+            <div class="input-area">
+                <textarea id="user-input" placeholder="Pregunta sobre scripts de Blender o pide una figura..."></textarea>
+                <button id="send-btn">
+                    <span class="btn-text">Ejecutar</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
         </div>
 
-        <div class="input-area">
-            <textarea id="user-input" placeholder="Pregunta sobre scripts de Python en Blender..."></textarea>
-            <button id="send-btn">
-                <span class="btn-text">Enviar</span>
-                <div class="spinner"></div>
-            </button>
+        <div class="viewport-section">
+            <div class="viewport-controls">
+                <i class="fa-solid fa-camera"></i> 3D Viewport
+            </div>
+            
+            <a-scene embedded>
+                <a-entity position="0 2 5">
+                    <a-camera look-controls wasd-controls></a-camera>
+                </a-entity>
+
+                <a-light type="ambient" color="#666"></a-light>
+                <a-light type="directional" position="-1 2 1" intensity="0.8" castShadow="true"></a-light>
+
+                <a-sky color="#242424"></a-sky>
+                <a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#3c3c3c" wireframe="true"></a-plane>
+
+                <a-entity id="scene-objects">
+                    <a-box id="default-cube" position="0 1 0" color="#e87d0d" shadow></a-box>
+                </a-entity>
+            </a-scene>
         </div>
+
     </div>
 
-    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
 
     <script>
-        // ==========================================
-        // ⚠️ CONFIGURACIÓN: URL DEL BACKEND
-        // ==========================================
         const RENDER_URL = "https://mi-backend-ia-2.onrender.com"; 
         const API_ENDPOINT = `${RENDER_URL}/preguntar`;
 
@@ -292,60 +275,46 @@
         const sendBtn = document.getElementById('send-btn');
         const btnText = sendBtn.querySelector('.btn-text');
         const spinner = sendBtn.querySelector('.spinner');
+        const sceneObjects = document.getElementById('scene-objects');
 
-        // Configurar Markdown
-        marked.setOptions({
-            highlight: function(code, lang) {
-                // Forzamos Python si no se detecta lenguaje, común en Blender
-                const language = highlight.getLanguage(lang) ? lang : 'python';
-                return highlight.highlight(code, { language }).value;
-            },
-            breaks: true, // Enter crea salto de línea
-            gfm: true // GitHub Flavored Markdown (tablas, listas, etc)
-        });
+        marked.setOptions({ gfm: true });
 
-        // Listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
         });
 
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
-            // UI: Mensaje Usuario
             appendMessage('user', text);
             userInput.value = '';
-            
-            // UI: Estado Cargando
             setLoading(true);
+
+            // --- INTERCEPTOR DE DEMOSTRACIÓN PARA A-FRAME ---
+            // Esto es solo para que veas cómo funciona visualmente de inmediato.
+            // Lo ideal es que tu IA backend devuelva un JSON indicando qué renderizar.
+            manejarComandos3DLocales(text);
 
             try {
                 if(RENDER_URL.includes("tu-app-en-render")) {
                     throw new Error("⚠️ Configura la URL real en el HTML.");
                 }
 
-                console.log("📡 Enviando a:", API_ENDPOINT);
-                
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pregunta: text })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
                 const data = await response.json();
-                console.log("✅ Respuesta V31:", data);
-
-                // Renderizar Respuesta IA (Raw)
                 appendAIMessage(data);
+
+                // Si tu backend enviara un comando estructurado, lo procesarías aquí.
+                // Ejemplo imaginario: if (data.accion3D) renderizarFigura(data.accion3D.tipo, data.accion3D.color);
 
             } catch (error) {
                 console.error(error);
@@ -356,29 +325,55 @@
             }
         }
 
+        // ==========================================
+        // FUNCIONES DE CONTROL A-FRAME
+        // ==========================================
+        function manejarComandos3DLocales(texto) {
+            const txt = texto.toLowerCase();
+            if (txt.includes('esfera')) renderizarFigura('sphere', getColor(txt));
+            else if (txt.includes('cubo')) renderizarFigura('box', getColor(txt));
+            else if (txt.includes('cilindro')) renderizarFigura('cylinder', getColor(txt));
+            else if (txt.includes('limpiar') || txt.includes('borrar')) sceneObjects.innerHTML = '';
+        }
+
+        function getColor(txt) {
+            if (txt.includes('rojo') || txt.includes('roja')) return '#ff4444';
+            if (txt.includes('azul')) return '#4444ff';
+            if (txt.includes('verde')) return '#44ff44';
+            if (txt.includes('amarillo') || txt.includes('amarilla')) return '#ffff44';
+            return '#e87d0d'; // Naranja Blender por defecto
+        }
+
+        function renderizarFigura(tipo, color) {
+            // Limpiamos la escena para dejar solo la nueva figura
+            sceneObjects.innerHTML = ''; 
+            
+            const figura = document.createElement(`a-${tipo}`);
+            figura.setAttribute('position', '0 1 0');
+            figura.setAttribute('color', color);
+            figura.setAttribute('shadow', '');
+            
+            // Animación suave de aparición
+            figura.setAttribute('animation', 'property: scale; from: 0 0 0; to: 1 1 1; dur: 500; easing: easeOutElastic');
+            
+            sceneObjects.appendChild(figura);
+        }
+
+        // ==========================================
+        // FUNCIONES DE UI DEL CHAT
+        // ==========================================
         function setLoading(isLoading) {
             sendBtn.disabled = isLoading;
-            if (isLoading) {
-                btnText.style.display = 'none';
-                spinner.style.display = 'block';
-                userInput.disabled = true;
-                userInput.style.opacity = "0.7";
-            } else {
-                btnText.style.display = 'block';
-                spinner.style.display = 'none';
-                userInput.disabled = false;
-                userInput.style.opacity = "1";
-                userInput.focus();
-            }
+            btnText.style.display = isLoading ? 'none' : 'block';
+            spinner.style.display = isLoading ? 'block' : 'none';
+            userInput.disabled = isLoading;
+            if(!isLoading) userInput.focus();
         }
 
         function appendMessage(role, text) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
-            
-            if (role === 'user') {
-                div.innerHTML = `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
-            }
+            if (role === 'user') div.innerHTML = `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
             chatWindow.appendChild(div);
             scrollToBottom();
         }
@@ -386,60 +381,29 @@
         function appendAIMessage(data) {
             const div = document.createElement('div');
             div.className = 'message ai';
-
-            // 1. Extraer Fuente
-            const fuente = data.fuente || "Desconocida";
-            const esMemoria = fuente.toLowerCase().includes("memoria");
-            const esLocal = fuente.toLowerCase().includes("local");
             
-            let colorFuente = '#888';
-            if (esMemoria) colorFuente = '#4cd964'; // Verde
-            if (esLocal) colorFuente = '#e87d0d';   // Naranja
-
-            // 2. Procesar Texto Principal (Markdown)
-            // En V31, 'respuesta_principal' contiene todo el texto formateado
-            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ La IA devolvió una respuesta vacía.";
-            
-            // Parsear Markdown a HTML
+            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ Respuesta vacía.";
             const htmlContent = marked.parse(rawContent);
 
-            // Nota: Ya no buscamos 'puntos_clave' porque en V31 los eliminamos para velocidad.
-            // Toda la info está en htmlContent.
-
             div.innerHTML = `
-                <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador</div>
-                <div class="ai-content">
-                    ${htmlContent}
-                    <div class="source-tag" style="border-color: ${colorFuente}; color: ${colorFuente};">
-                        <i class="fa-solid fa-server"></i> Fuente: ${fuente}
-                    </div>
-                </div>
+                <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador IA</div>
+                <div class="ai-content">${htmlContent}</div>
             `;
 
             chatWindow.appendChild(div);
-            
-            // Re-aplicar highlight.js a los bloques de código nuevos
-            div.querySelectorAll('pre code').forEach((el) => {
-                hljs.highlightElement(el);
-            });
+            div.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
+            scrollToBottom();
         }
 
         function appendErrorMessage(msg) {
             const div = document.createElement('div');
             div.className = 'message ai';
-            div.innerHTML = `
-                <div class="ai-content" style="border-color: #ff4444; background: #2a1a1a;">
-                    <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 5px;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Error de Conexión
-                    </p>
-                    <p style="color: #e6e6e6;">${msg}</p>
-                </div>`;
+            div.innerHTML = `<div class="ai-content" style="border-color: #ff4444;"><p style="color: #ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${msg}</p></div>`;
             chatWindow.appendChild(div);
+            scrollToBottom();
         }
 
-        function scrollToBottom() {
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
+        function scrollToBottom() { chatWindow.scrollTop = chatWindow.scrollHeight; }
     </script>
 </body>
 </html>
