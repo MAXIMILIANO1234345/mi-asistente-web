@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orquestador IA - Blender Mode</title>
+    <title>Orquestador IA - Modo Blender</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,7 +20,6 @@
             --bg-message-user: #373737;
             --accent-blender: #e87d0d;
             --text-main: #e6e6e6;
-            --text-dim: #b0b0b0;
             --border: #3c3c3c;
             --code-bg: #1e1e1e;
         }
@@ -37,16 +36,15 @@
             overflow: hidden;
         }
 
-        /* LAYOUT DIVIDIDO */
+        /* --- LAYOUT DIVIDIDO --- */
         .app-layout {
             display: flex;
             width: 100vw;
             height: 100vh;
         }
 
-        /* SECCIÓN DEL CHAT (Izquierda) */
         .chat-section {
-            width: 400px;
+            width: 450px;
             min-width: 350px;
             background-color: var(--bg-app);
             display: flex;
@@ -55,14 +53,13 @@
             z-index: 10;
         }
 
-        /* SECCIÓN DEL VIEWPORT 3D (Derecha) */
         .viewport-section {
             flex: 1;
             position: relative;
-            background-color: #242424; /* Color similar al viewport de Blender */
+            background-color: #242424; 
         }
 
-        /* HEADER */
+        /* --- HEADER & STATUS --- */
         header {
             padding: 15px 20px;
             border-bottom: 1px solid var(--border);
@@ -71,10 +68,8 @@
             gap: 15px;
             background-color: var(--bg-panel);
         }
-
         header i { font-size: 1.5rem; color: var(--accent-blender); }
         header h1 { font-size: 1.1rem; margin: 0; font-weight: 600; }
-        
         .status-badge {
             margin-left: auto;
             font-size: 0.75rem;
@@ -88,18 +83,16 @@
             gap: 5px;
         }
 
-        /* CHAT AREA */
+        /* --- CHAT AREA --- */
         #chat-window {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             scroll-behavior: smooth;
         }
-
         .message { margin-bottom: 25px; animation: fadeIn 0.3s forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { to { opacity: 1; } }
 
-        /* USER MESSAGE */
         .message.user { display: flex; justify-content: flex-end; }
         .message.user .bubble {
             background-color: var(--bg-message-user);
@@ -111,7 +104,6 @@
             line-height: 1.5;
         }
 
-        /* AI MESSAGE */
         .message.ai { display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; }
         .ai-avatar { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--accent-blender); margin-bottom: 8px; font-weight: 600; }
         .ai-content {
@@ -124,8 +116,9 @@
             line-height: 1.6;
         }
 
-        /* MARKDOWN */
-        .ai-content h1, .ai-content h2, .ai-content h3 { color: white; margin-top: 1em; margin-bottom: 0.5em; }
+        /* --- MARKDOWN Y CÓDIGO --- */
+        .ai-content h1, .ai-content h2, .ai-content h3 { color: white; margin-top: 1.5em; margin-bottom: 0.5em; }
+        .ai-content p { margin-top: 0; margin-bottom: 1em; }
         .ai-content pre {
             background: var(--code-bg) !important;
             padding: 15px;
@@ -138,26 +131,40 @@
             background: #333; padding: 2px 6px; border-radius: 4px;
             font-family: 'JetBrains Mono', monospace; color: #e5c07b;
         }
+        
+        /* TU ESTILO ORIGINAL DE FUENTE RESTAURADO */
+        .source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #888;
+            background: #1a1a1a;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            opacity: 0.8;
+        }
 
-        /* INPUT AREA */
+        /* --- INPUT AREA --- */
         .input-area {
-            padding: 15px;
+            padding: 20px;
             background-color: var(--bg-panel);
             border-top: 1px solid var(--border);
             display: flex;
-            flex-direction: column;
             gap: 10px;
+            align-items: center;
         }
-
         textarea {
-            width: 100%;
+            flex: 1;
             background-color: var(--bg-app);
             border: 1px solid var(--border);
             color: white;
-            padding: 12px;
+            padding: 15px;
             border-radius: 8px;
             resize: none;
-            height: 80px;
+            height: 60px;
             font-family: inherit;
             transition: 0.2s;
         }
@@ -167,27 +174,29 @@
             background-color: var(--accent-blender);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 0 30px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            height: 60px;
             transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            min-width: 120px;
         }
         button:hover { background-color: #d6730b; }
-        button:disabled { background-color: #444; cursor: not-allowed; }
+        button:disabled { background-color: #444; cursor: not-allowed; opacity: 0.7; }
 
         .spinner {
-            width: 18px; height: 18px;
-            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
             border-top-color: #fff; animation: spin 1s infinite linear; display: none;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* OVERLAY 3D CONTROLS */
+        /* --- 3D VIEWPORT CONTROLS --- */
         .viewport-controls {
             position: absolute;
             top: 20px;
@@ -201,7 +210,6 @@
             font-size: 0.9rem;
             backdrop-filter: blur(5px);
         }
-
     </style>
 </head>
 <body>
@@ -212,11 +220,11 @@
             <header>
                 <i class="fa-solid fa-cube"></i>
                 <div>
-                    <h1>Orquestador IA</h1>
+                    <h1>Orquestador IA <span style="font-size: 0.8rem; opacity: 0.7;">V31</span></h1>
                     <span style="font-size: 0.8rem; color: #888;">Gemma + A-Frame Viewport</span>
                 </div>
                 <div class="status-badge" id="status-badge">
-                    <i class="fa-solid fa-circle"></i> Local
+                    <i class="fa-solid fa-circle"></i> Conectado
                 </div>
             </header>
 
@@ -224,16 +232,16 @@
                 <div class="message ai">
                     <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
                     <div class="ai-content">
-                        <p><strong>Entorno 3D activado.</strong></p>
-                        <p>Pídeme que cree figuras, por ejemplo: <em>"Crea una esfera roja"</em> o <em>"Añade un cilindro azul"</em>, y verás los resultados en el viewport de la derecha.</p>
+                        <p><strong>Layout 3D activado y lógica de fetch original restaurada.</strong></p>
+                        <p>El código de red es idéntico a tu V31. Si falla, revisa la consola (F12) para confirmar si es un error de CORS o si el backend está caído.</p>
                     </div>
                 </div>
             </div>
 
             <div class="input-area">
-                <textarea id="user-input" placeholder="Pregunta sobre scripts de Blender o pide una figura..."></textarea>
+                <textarea id="user-input" placeholder="Pregunta sobre scripts de Python en Blender..."></textarea>
                 <button id="send-btn">
-                    <span class="btn-text">Ejecutar</span>
+                    <span class="btn-text">Enviar</span>
                     <div class="spinner"></div>
                 </button>
             </div>
@@ -260,11 +268,11 @@
                 </a-entity>
             </a-scene>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/python.min.js"></script>
 
     <script>
         const RENDER_URL = "https://mi-backend-ia-2.onrender.com"; 
@@ -277,7 +285,14 @@
         const spinner = sendBtn.querySelector('.spinner');
         const sceneObjects = document.getElementById('scene-objects');
 
-        marked.setOptions({ gfm: true });
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'python';
+                return highlight.highlight(code, { language }).value;
+            },
+            breaks: true,
+            gfm: true
+        });
 
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
@@ -292,32 +307,34 @@
             userInput.value = '';
             setLoading(true);
 
-            // --- INTERCEPTOR DE DEMOSTRACIÓN PARA A-FRAME ---
-            // Esto es solo para que veas cómo funciona visualmente de inmediato.
-            // Lo ideal es que tu IA backend devuelva un JSON indicando qué renderizar.
-            manejarComandos3DLocales(text);
+            // Intentamos generar la figura 3D (envuelto en try/catch para no romper el fetch)
+            try { manejarComandos3DLocales(text); } catch(e) { console.error("Error en visor 3D:", e); }
 
+            // TU LÓGICA DE RED EXACTA (RESTAURO LOS LOGS PARA DEPURACIÓN)
             try {
                 if(RENDER_URL.includes("tu-app-en-render")) {
                     throw new Error("⚠️ Configura la URL real en el HTML.");
                 }
 
+                console.log("📡 Enviando a:", API_ENDPOINT);
+                
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pregunta: text })
                 });
 
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
 
                 const data = await response.json();
+                console.log("✅ Respuesta V31:", data);
+
                 appendAIMessage(data);
 
-                // Si tu backend enviara un comando estructurado, lo procesarías aquí.
-                // Ejemplo imaginario: if (data.accion3D) renderizarFigura(data.accion3D.tipo, data.accion3D.color);
-
             } catch (error) {
-                console.error(error);
+                console.error("🔥 Error detectado en el fetch:", error);
                 appendErrorMessage(error.message);
             } finally {
                 setLoading(false);
@@ -325,9 +342,6 @@
             }
         }
 
-        // ==========================================
-        // FUNCIONES DE CONTROL A-FRAME
-        // ==========================================
         function manejarComandos3DLocales(texto) {
             const txt = texto.toLowerCase();
             if (txt.includes('esfera')) renderizarFigura('sphere', getColor(txt));
@@ -341,33 +355,33 @@
             if (txt.includes('azul')) return '#4444ff';
             if (txt.includes('verde')) return '#44ff44';
             if (txt.includes('amarillo') || txt.includes('amarilla')) return '#ffff44';
-            return '#e87d0d'; // Naranja Blender por defecto
+            return '#e87d0d'; 
         }
 
         function renderizarFigura(tipo, color) {
-            // Limpiamos la escena para dejar solo la nueva figura
             sceneObjects.innerHTML = ''; 
-            
             const figura = document.createElement(`a-${tipo}`);
             figura.setAttribute('position', '0 1 0');
             figura.setAttribute('color', color);
             figura.setAttribute('shadow', '');
-            
-            // Animación suave de aparición
             figura.setAttribute('animation', 'property: scale; from: 0 0 0; to: 1 1 1; dur: 500; easing: easeOutElastic');
-            
             sceneObjects.appendChild(figura);
         }
 
-        // ==========================================
-        // FUNCIONES DE UI DEL CHAT
-        // ==========================================
         function setLoading(isLoading) {
             sendBtn.disabled = isLoading;
-            btnText.style.display = isLoading ? 'none' : 'block';
-            spinner.style.display = isLoading ? 'block' : 'none';
-            userInput.disabled = isLoading;
-            if(!isLoading) userInput.focus();
+            if (isLoading) {
+                btnText.style.display = 'none';
+                spinner.style.display = 'block';
+                userInput.disabled = true;
+                userInput.style.opacity = "0.7";
+            } else {
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+                userInput.disabled = false;
+                userInput.style.opacity = "1";
+                userInput.focus();
+            }
         }
 
         function appendMessage(role, text) {
@@ -378,16 +392,30 @@
             scrollToBottom();
         }
 
+        // TU FUNCIÓN DE MENSAJE IA ORIGINAL RESTAURADA (INCLUYE ETIQUETA DE FUENTE)
         function appendAIMessage(data) {
             const div = document.createElement('div');
             div.className = 'message ai';
+
+            const fuente = data.fuente || "Desconocida";
+            const esMemoria = fuente.toLowerCase().includes("memoria");
+            const esLocal = fuente.toLowerCase().includes("local");
             
-            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ Respuesta vacía.";
+            let colorFuente = '#888';
+            if (esMemoria) colorFuente = '#4cd964';
+            if (esLocal) colorFuente = '#e87d0d';
+
+            const rawContent = data.respuesta_principal || data.respuesta || "⚠️ La IA devolvió una respuesta vacía.";
             const htmlContent = marked.parse(rawContent);
 
             div.innerHTML = `
-                <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador IA</div>
-                <div class="ai-content">${htmlContent}</div>
+                <div class="ai-avatar"><i class="fa-solid fa-brain"></i> Orquestador</div>
+                <div class="ai-content">
+                    ${htmlContent}
+                    <div class="source-tag" style="border-color: ${colorFuente}; color: ${colorFuente};">
+                        <i class="fa-solid fa-server"></i> Fuente: ${fuente}
+                    </div>
+                </div>
             `;
 
             chatWindow.appendChild(div);
@@ -398,7 +426,13 @@
         function appendErrorMessage(msg) {
             const div = document.createElement('div');
             div.className = 'message ai';
-            div.innerHTML = `<div class="ai-content" style="border-color: #ff4444;"><p style="color: #ff4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${msg}</p></div>`;
+            div.innerHTML = `
+                <div class="ai-content" style="border-color: #ff4444; background: #2a1a1a;">
+                    <p style="color: #ff6b6b; font-weight: bold; margin-bottom: 5px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Error de Conexión
+                    </p>
+                    <p style="color: #e6e6e6;">${msg}</p>
+                </div>`;
             chatWindow.appendChild(div);
             scrollToBottom();
         }
@@ -407,3 +441,5 @@
     </script>
 </body>
 </html>
+
+
