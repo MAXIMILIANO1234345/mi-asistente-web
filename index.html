@@ -48,14 +48,20 @@
         .input-area { padding: 20px; background-color: #0f0f0f; border-top: 1px solid var(--border); display: flex; gap: 12px; }
         textarea { flex: 1; background-color: #111; border: 1px solid #333; color: white; padding: 15px; border-radius: 8px; resize: none; height: 55px; font-family: inherit; transition: 0.3s; }
         textarea:focus { outline: none; border-color: var(--accent-blender); box-shadow: 0 0 10px var(--accent-glow); }
-        button { background-color: var(--accent-blender); color: white; border: none; border-radius: 8px; cursor: pointer; width: 60px; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.2rem; }
-        button:hover { background-color: #f08c26; transform: scale(1.05); }
-        button:disabled { background-color: #444; cursor: not-allowed; transform: scale(1); }
+        button.action-btn { background-color: var(--accent-blender); color: white; border: none; border-radius: 8px; cursor: pointer; width: 60px; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.2rem; }
+        button.action-btn:hover { background-color: #f08c26; transform: scale(1.05); }
+        button.action-btn:disabled { background-color: #444; cursor: not-allowed; transform: scale(1); }
 
         .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.2); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .viewport-controls { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(10,10,10,0.8); padding: 8px 15px; border-radius: 6px; border: 1px solid #333; color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; backdrop-filter: blur(4px); }
+        .viewport-controls { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(10,10,10,0.8); padding: 8px 15px; border-radius: 6px; border: 1px solid #333; color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; backdrop-filter: blur(4px); pointer-events: none;}
+        
+        /* Contenedor UI superpuesto en A-Frame */
+        #ui-container { position: absolute; bottom: 40px; width: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        #btn-crear { pointer-events: auto; padding: 12px 24px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; background-color: var(--accent-blender); color: white; border: 1px solid #ff9d3d; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(232, 125, 13, 0.4); transition: all 0.2s ease; }
+        #btn-crear:hover { background-color: #f08c26; transform: translateY(-2px); }
+        #btn-crear:active { transform: translateY(1px); }
     </style>
 </head>
 <body>
@@ -81,7 +87,7 @@
 
             <div class="input-area">
                 <textarea id="user-input" placeholder="Ej: Genera un dron de combate con un cañón central..."></textarea>
-                <button id="send-btn">
+                <button id="send-btn" class="action-btn">
                     <span class="btn-text"><i class="fa-solid fa-paper-plane"></i></span>
                     <div class="spinner"></div>
                 </button>
@@ -89,10 +95,14 @@
         </div>
 
         <div class="viewport-section">
-            <div class="viewport-controls"><i class="fa-solid fa-vr-cardboard"></i> Lienzo de Proyección</div>
+            <div class="viewport-controls"><i class="fa-solid fa-vr-cardboard"></i> Lienzo de Proyección | WASD para moverte</div>
             
-            <a-scene embedded>
-                <a-entity position="0 1.6 5"><a-camera look-controls wasd-controls></a-camera></a-entity>
+            <div id="ui-container">
+                <button id="btn-crear">Simular Objeto y Animar Avatar</button>
+            </div>
+
+            <a-scene embedded shadow="type: pcfsoft">
+                <a-entity id="camara" camera position="0 1.6 6" look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 60"></a-entity>
                 
                 <a-light type="ambient" color="#222"></a-light>
                 <a-light type="point" position="2 4 3" intensity="0.8" color="#fff" castShadow="true"></a-light>
@@ -103,14 +113,32 @@
 
                 <a-entity id="guia-ia" position="-3 1.8 -2">
                     <a-entity animation="property: position; to: 0 0.15 0; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
-                        
                         <a-sphere radius="0.25" color="#111" material="metalness: 0.8; roughness: 0.2"></a-sphere>
-                        
                         <a-sphere id="ai-eye" radius="0.1" position="0 0 0.21" color="#0df" material="emissive: #0df; emissiveIntensity: 0.3"></a-sphere>
-                        
                         <a-torus radius="0.35" radius-tubular="0.015" color="#e87d0d" rotation="90 0 0" material="emissive: #e87d0d; emissiveIntensity: 0.5" animation="property: rotation; to: 90 360 0; loop: true; dur: 4000; easing: linear"></a-torus>
                         <a-torus radius="0.3" radius-tubular="0.008" color="#aaa" rotation="0 90 0" animation="property: rotation; to: 360 90 0; loop: true; dur: 3000; easing: linear"></a-torus>
                     </a-entity>
+                </a-entity>
+
+                <a-entity id="avatar" position="4 0 -4" rotation="0 -45 0"
+                          animation__caminar="property: position; to: 1.5 0 0; dur: 2500; easing: easeInOutQuad; startEvents: iniciar-inspeccion"
+                          animation__mirar_obj="property: rotation; to: 0 90 0; dur: 800; delay: 2500; easing: easeInOutQuad; startEvents: iniciar-inspeccion"
+                          animation__examinar="property: position; to: 1.5 0.3 0; dur: 400; delay: 3500; dir: alternate; loop: 2; startEvents: iniciar-inspeccion"
+                          animation__mirar_cam="property: rotation; to: 0 0 0; dur: 1000; delay: 5000; easing: easeInOutQuad; startEvents: iniciar-inspeccion"
+                          animation__acercarse="property: position; to: 0 0 3.5; dur: 3000; delay: 6000; easing: easeInOutQuad; startEvents: iniciar-inspeccion">
+                    
+                    <a-entity position="0 0.75 0" shadow="cast: true">
+                        <a-cylinder color="#ff4b4b" height="1" radius="0.3"></a-cylinder> 
+                        <a-sphere color="#ffcccc" radius="0.25" position="0 0.7 0"></a-sphere> 
+                        <a-box color="#333" width="0.3" height="0.1" depth="0.1" position="0 0.7 0.2"></a-box> 
+                    </a-entity>
+                </a-entity>
+
+                <a-entity id="objeto-nuevo" position="0 1 0" visible="false">
+                    <a-box color="#FFD700" depth="0.5" height="0.5" width="0.5" 
+                           animation="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear"
+                           shadow="cast: true"></a-box>
+                    <a-light type="point" color="#FFD700" intensity="0.5" distance="3"></a-light>
                 </a-entity>
 
                 <a-entity id="scene-objects" position="0 0.5 0"></a-entity>
@@ -140,6 +168,19 @@
         });
 
         // ==========================================
+        // LÓGICA DEL AVATAR Y EL BOTÓN DE PRUEBA
+        // ==========================================
+        const botonCrear = document.getElementById('btn-crear');
+        const objetoNuevo = document.getElementById('objeto-nuevo');
+        const avatar = document.getElementById('avatar');
+
+        botonCrear.addEventListener('click', () => {
+            botonCrear.style.display = 'none';
+            objetoNuevo.setAttribute('visible', 'true');
+            avatar.emit('iniciar-inspeccion');
+        });
+
+        // ==========================================
         // SISTEMA DE VOZ Y ANIMACIÓN DEL DRON
         // ==========================================
         let vocesDisponibles = [];
@@ -152,20 +193,16 @@
             window.speechSynthesis.cancel(); 
 
             const mensaje = new SpeechSynthesisUtterance(texto);
-            
-            // Buscar la mejor voz en español disponible
             const vozIdeal = vocesDisponibles.find(v => v.lang.includes('es') && (v.name.includes('Google') || v.name.includes('Microsoft')));
             if(vozIdeal) mensaje.voice = vozIdeal;
             
             mensaje.lang = 'es-MX';
-            mensaje.rate = 1.05; // Un poco más ágil
-            mensaje.pitch = 1.1; // Tono ligeramente más agudo/tecnológico
+            mensaje.rate = 1.05; 
+            mensaje.pitch = 1.1; 
 
             const ojoIA = document.getElementById('ai-eye');
-            let pulsoInterval;
 
             mensaje.onstart = () => {
-                // Simular el habla haciendo que la intensidad del ojo y su tamaño pulsen
                 ojoIA.setAttribute('animation__hablar', 'property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 150; loop: true');
                 ojoIA.setAttribute('material', 'emissiveIntensity: 1');
             };
@@ -180,50 +217,51 @@
         }
 
         // ==========================================
-        // LÓGICA DE COMUNICACIÓN
-       async function sendMessage() {
-    const text = userInput.value.trim();
-    if (!text) return;
+        // LÓGICA DE COMUNICACIÓN CON BACKEND
+        // ==========================================
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
 
-    appendMessage('user', text);
-    userInput.value = '';
-    setLoading(true);
+            appendMessage('user', text);
+            userInput.value = '';
+            setLoading(true);
 
-    try {
-        const response = await fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pregunta: text })
-        });
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pregunta: text })
+                });
 
-        // Verificamos si la respuesta es exitosa antes de intentar leer el JSON
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Error en la respuesta del servidor");
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Error en la respuesta del servidor");
+                }
+
+                const data = await response.json();
+                
+                appendAIMessage(data);
+                
+                if (data.aframe_html) {
+                    sceneObjects.innerHTML = data.aframe_html;
+                    // Opcional: Podrías disparar la animación del avatar aquí también
+                    // avatar.emit('iniciar-inspeccion');
+                }
+
+                if (data.narracion_voz) {
+                    narrarYAnimar(data.narracion_voz);
+                }
+
+            } catch (error) {
+                console.error("Error detallado:", error);
+                appendErrorMessage(`Error de sistema: ${error.message}`);
+            } finally {
+                setLoading(false);
+                scrollToBottom();
+            }
         }
 
-        const data = await response.json();
-        
-        // Renderizado de resultados
-        appendAIMessage(data);
-        
-        if (data.aframe_html) {
-            // Limpiamos y agregamos el nuevo contenido a la escena
-            sceneObjects.innerHTML = data.aframe_html;
-        }
-
-        if (data.narracion_voz) {
-            narrarYAnimar(data.narracion_voz);
-        }
-
-    } catch (error) {
-        console.error("Error detallado:", error);
-        appendErrorMessage(`Error de sistema: ${error.message}`);
-    } finally {
-        setLoading(false);
-        scrollToBottom();
-    }
-}
         function appendMessage(role, text) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
@@ -271,5 +309,3 @@
     </script>
 </body>
 </html>
-
-
