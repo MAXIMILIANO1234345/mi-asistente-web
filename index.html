@@ -1,10 +1,3 @@
-Entendido. He limpiado el código eliminando los botones de prueba y los carteles de instrucciones que "se veían raros", dejando una interfaz profesional y limpia.
-
-He mantenido la **cámara con controles WASD y ratón libre** (estilo videojuego) para que la navegación sea fluida, y he corregido la estructura del avatar para que sus animaciones funcionen correctamente cuando el servidor envíe comandos.
-
-Aquí tienes el **código completo del index.html**:
-
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -15,153 +8,54 @@ Aquí tienes el **código completo del index.html**:
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
-    
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
     <style>
         :root {
-            --bg-app: #0a0a0a;
-            --bg-panel: #141414;
-            --bg-message-ai: #1a1a1a;
-            --bg-message-user: #222;
-            --accent-blender: #e87d0d;
-            --accent-glow: rgba(232, 125, 13, 0.4);
-            --text-main: #e0e0e0;
-            --border: #2a2a2a;
-            --code-bg: #050505;
+            --bg-app: #0a0a0a; --bg-panel: #141414; --bg-message-ai: #1a1a1a;
+            --bg-message-user: #222; --accent-blender: #e87d0d; --accent-glow: rgba(232, 125, 13, 0.4);
+            --text-main: #e0e0e0; --border: #2a2a2a; --code-bg: #050505;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-app); 
-            color: var(--text-main); 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
         .app-layout { display: flex; width: 100vw; height: 100vh; }
 
-        /* Sección de Chat */
         .chat-section {
-            width: 450px;
-            background-color: var(--bg-panel);
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border);
-            z-index: 10;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.8);
+            width: 450px; background-color: var(--bg-panel); display: flex; flex-direction: column;
+            border-right: 1px solid var(--border); z-index: 10; box-shadow: 5px 0 25px rgba(0,0,0,0.8);
         }
 
-        header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background-color: #0f0f0f;
-        }
-        header i { font-size: 1.8rem; color: var(--accent-blender); filter: drop-shadow(0 0 8px var(--accent-glow)); }
-        header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px; }
-
-        #chat-window {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            scroll-behavior: smooth;
-        }
-
-        .message { margin-bottom: 25px; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .message.user { display: flex; justify-content: flex-end; }
-        .message.user .bubble {
-            background-color: var(--bg-message-user);
-            padding: 12px 18px;
-            border-radius: 12px 12px 2px 12px;
-            max-width: 90%;
-            border: 1px solid #333;
-            font-size: 0.95rem;
-        }
-
-        .message.ai .ai-avatar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--accent-blender);
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .ai-content {
-            background-color: var(--bg-message-ai);
-            border: 1px solid var(--border);
-            border-radius: 4px 12px 12px 12px;
-            padding: 18px;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        /* Área de entrada */
-        .input-area {
-            padding: 20px;
-            background-color: #0f0f0f;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-        }
-        textarea {
-            flex: 1;
-            background-color: #111;
-            border: 1px solid #333;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            resize: none;
-            height: 55px;
-            font-family: inherit;
-            transition: 0.3s;
-        }
-        textarea:focus { outline: none; border-color: var(--accent-blender); }
-
-        .action-btn {
-            background-color: var(--accent-blender);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-        .action-btn:hover { background-color: #f08c26; }
-
-        /* Sección del Visor 3D */
         .viewport-section { flex: 1; position: relative; background-color: #000; }
 
-        .spinner {
-            width: 20px; height: 20px;
-            border: 3px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
+        header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; background-color: #0f0f0f; }
+        header i { font-size: 1.8rem; color: var(--accent-blender); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+        header h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; }
+
+        #chat-window { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+        .message { margin-bottom: 25px; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .message.user { display: flex; justify-content: flex-end; }
+        .message.user .bubble { background-color: var(--bg-message-user); padding: 12px 18px; border-radius: 12px 12px 2px 12px; max-width: 90%; border: 1px solid #333; font-size: 0.95rem; }
+
+        .message.ai .ai-avatar { display: flex; align-items: center; gap: 8px; color: var(--accent-blender); margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .ai-content { background-color: var(--bg-message-ai); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 18px; font-size: 0.9rem; line-height: 1.6; }
+        .ai-content p { margin-bottom: 10px; }
+        .ai-content pre { background: var(--code-bg) !important; padding: 15px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; margin: 15px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+        .input-area { padding: 20px; background-color: #0f0f0f; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+        textarea { flex: 1; background-color: #111; border: 1px solid #333; color: white; padding: 15px; border-radius: 8px; resize: none; height: 55px; font-family: inherit; transition: 0.3s; }
+        textarea:focus { outline: none; border-color: var(--accent-blender); box-shadow: 0 0 10px var(--accent-glow); }
+        button { background-color: var(--accent-blender); color: white; border: none; border-radius: 8px; cursor: pointer; width: 60px; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.2rem; }
+        button:hover { background-color: #f08c26; transform: scale(1.05); }
+        button:disabled { background-color: #444; cursor: not-allowed; transform: scale(1); }
+
+        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.2); border-radius: 50%; border-top-color: #fff; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        pre { 
-            background: var(--code-bg) !important; 
-            padding: 12px; 
-            border-radius: 6px; 
-            margin: 10px 0; 
-            font-size: 0.8rem; 
-            border: 1px solid #222;
-        }
+        .viewport-controls { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(10,10,10,0.8); padding: 8px 15px; border-radius: 6px; border: 1px solid #333; color: #aaa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; backdrop-filter: blur(4px); }
     </style>
 </head>
 <body>
@@ -169,25 +63,25 @@ Aquí tienes el **código completo del index.html**:
     <div class="app-layout">
         <div class="chat-section">
             <header>
-                <i class="fa-solid fa-cube"></i>
+                <i class="fa-solid fa-layer-group"></i>
                 <div>
                     <h1>Génesis 3B</h1>
-                    <span style="color: #666; font-size: 0.7rem; text-transform: uppercase;">Orquestador de Geometría</span>
+                    <span style="color: #666; font-size: 0.75rem;">MOTOR DE ORQUESTACIÓN V36</span>
                 </div>
             </header>
 
             <div id="chat-window">
                 <div class="message ai">
-                    <div class="ai-avatar"><i class="fa-solid fa-robot"></i> Sistema</div>
+                    <div class="ai-avatar"><i class="fa-solid fa-satellite-dish"></i> Sistema Inicializado</div>
                     <div class="ai-content">
-                        <p>Núcleo cargado. Usa el chat para generar estructuras. Navega en el visor usando <b>W-A-S-D</b>.</p>
+                        <p>Motor lógico en línea. El núcleo de IA holográfico está esperando parámetros. <strong>Describe la estructura que deseas construir.</strong></p>
                     </div>
                 </div>
             </div>
 
             <div class="input-area">
-                <textarea id="user-input" placeholder="Escribe tu comando..."></textarea>
-                <button id="send-btn" class="action-btn">
+                <textarea id="user-input" placeholder="Ej: Genera un dron de combate con un cañón central..."></textarea>
+                <button id="send-btn">
                     <span class="btn-text"><i class="fa-solid fa-paper-plane"></i></span>
                     <div class="spinner"></div>
                 </button>
@@ -195,42 +89,31 @@ Aquí tienes el **código completo del index.html**:
         </div>
 
         <div class="viewport-section">
-            <a-scene embedded shadow="type: pcfsoft">
+            <div class="viewport-controls"><i class="fa-solid fa-vr-cardboard"></i> Lienzo de Proyección</div>
+            
+            <a-scene embedded>
+                <a-entity position="0 1.6 5"><a-camera look-controls wasd-controls></a-camera></a-entity>
                 
-                <a-entity id="camara-rig" position="0 0 5">
-                    <a-entity id="camara" camera 
-                              look-controls="pointerLockEnabled: false" 
-                              wasd-controls="acceleration: 65">
-                    </a-entity>
-                </a-entity>
-                
-                <a-light type="ambient" color="#333"></a-light>
-                <a-light type="directional" position="-1 4 2" intensity="0.7" castShadow="true"></a-light>
-                <a-light type="point" position="3 2 -3" intensity="0.4" color="#0df"></a-light>
+                <a-light type="ambient" color="#222"></a-light>
+                <a-light type="point" position="2 4 3" intensity="0.8" color="#fff" castShadow="true"></a-light>
+                <a-light type="point" position="-2 1 -2" intensity="0.5" color="#0df"></a-light>
 
-                <a-sky color="#080808"></a-sky>
-                <a-grid material="color: #222; opacity: 0.4"></a-grid>
+                <a-sky color="#050505"></a-sky>
+                <a-grid position="0 0 0" material="color: #333; opacity: 0.5"></a-grid>
 
-                <a-entity id="dron-ia" position="-2 2 -3">
-                    <a-entity animation="property: position; to: 0 0.2 0; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine">
-                        <a-sphere radius="0.15" color="#111"></a-sphere>
-                        <a-sphere id="ai-eye" radius="0.06" position="0 0 0.12" color="#0df" material="emissive: #0df; emissiveIntensity: 1"></a-sphere>
-                        <a-torus radius="0.25" radius-tubular="0.01" color="#e87d0d" rotation="90 0 0" animation="property: rotation; to: 90 360 0; loop: true; dur: 3000; easing: linear"></a-torus>
+                <a-entity id="guia-ia" position="-3 1.8 -2">
+                    <a-entity animation="property: position; to: 0 0.15 0; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                        
+                        <a-sphere radius="0.25" color="#111" material="metalness: 0.8; roughness: 0.2"></a-sphere>
+                        
+                        <a-sphere id="ai-eye" radius="0.1" position="0 0 0.21" color="#0df" material="emissive: #0df; emissiveIntensity: 0.3"></a-sphere>
+                        
+                        <a-torus radius="0.35" radius-tubular="0.015" color="#e87d0d" rotation="90 0 0" material="emissive: #e87d0d; emissiveIntensity: 0.5" animation="property: rotation; to: 90 360 0; loop: true; dur: 4000; easing: linear"></a-torus>
+                        <a-torus radius="0.3" radius-tubular="0.008" color="#aaa" rotation="0 90 0" animation="property: rotation; to: 360 90 0; loop: true; dur: 3000; easing: linear"></a-torus>
                     </a-entity>
                 </a-entity>
 
-                <a-entity id="avatar" position="3 0 -2" rotation="0 -30 0"
-                    animation__hablar="property: scale; to: 1.05 1.05 1.05; dur: 200; startEvents: empezar-hablar; pauseEvents: parar-hablar; dir: alternate; loop: true">
-                    
-                    <a-entity position="0 0.75 0" shadow="cast: true">
-                        <a-cylinder color="#ff4b4b" height="1" radius="0.25"></a-cylinder> 
-                        <a-sphere color="#ffcccc" radius="0.22" position="0 0.7 0"></a-sphere> 
-                        <a-box color="#333" width="0.2" height="0.08" depth="0.08" position="0 0.7 0.18"></a-box> 
-                    </a-entity>
-                </a-entity>
-
-                <a-entity id="scene-objects" position="0 0 0"></a-entity>
-
+                <a-entity id="scene-objects" position="0 0.5 0"></a-entity>
             </a-scene>
         </div>
     </div>
@@ -239,108 +122,154 @@ Aquí tienes el **código completo del index.html**:
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 
     <script>
-        const API_ENDPOINT = "https://mi-backend-ia-2.onrender.com/preguntar"; // Actualiza si es necesario
+        const RENDER_URL = "https://mi-backend-ia-2.onrender.com"; // CAMBIA POR TU URL
+        const API_ENDPOINT = `${RENDER_URL}/preguntar`;
 
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const spinner = sendBtn.querySelector('.spinner');
         const btnText = sendBtn.querySelector('.btn-text');
+        const spinner = sendBtn.querySelector('.spinner');
         const sceneObjects = document.getElementById('scene-objects');
-        const aiEye = document.getElementById('ai-eye');
-        const avatar = document.getElementById('avatar');
 
         marked.setOptions({ breaks: true, gfm: true });
 
-        // Función para enviar mensaje
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
 
-            appendMessage('user', text);
-            userInput.value = '';
-            setLoading(true);
+        // ==========================================
+        // SISTEMA DE VOZ Y ANIMACIÓN DEL DRON
+        // ==========================================
+        let vocesDisponibles = [];
+        window.speechSynthesis.onvoiceschanged = () => {
+            vocesDisponibles = window.speechSynthesis.getVoices();
+        };
 
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pregunta: text })
-                });
+        function narrarYAnimar(texto) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel(); 
 
-                const data = await response.json();
-                appendAIMessage(data);
+            const mensaje = new SpeechSynthesisUtterance(texto);
+            
+            // Buscar la mejor voz en español disponible
+            const vozIdeal = vocesDisponibles.find(v => v.lang.includes('es') && (v.name.includes('Google') || v.name.includes('Microsoft')));
+            if(vozIdeal) mensaje.voice = vozIdeal;
+            
+            mensaje.lang = 'es-MX';
+            mensaje.rate = 1.05; // Un poco más ágil
+            mensaje.pitch = 1.1; // Tono ligeramente más agudo/tecnológico
 
-                if (data.aframe_html) {
-                    sceneObjects.innerHTML = data.aframe_html;
-                }
+            const ojoIA = document.getElementById('ai-eye');
+            let pulsoInterval;
 
-                if (data.narracion_voz) {
-                    reproducirVoz(data.narracion_voz);
-                }
+            mensaje.onstart = () => {
+                // Simular el habla haciendo que la intensidad del ojo y su tamaño pulsen
+                ojoIA.setAttribute('animation__hablar', 'property: scale; to: 1.2 1.2 1.2; dir: alternate; dur: 150; loop: true');
+                ojoIA.setAttribute('material', 'emissiveIntensity: 1');
+            };
 
-            } catch (error) {
-                appendMessage('ai', "Error de conexión con el núcleo lógico.");
-            } finally {
-                setLoading(false);
-            }
+            mensaje.onend = () => {
+                ojoIA.removeAttribute('animation__hablar');
+                ojoIA.setAttribute('scale', '1 1 1');
+                ojoIA.setAttribute('material', 'emissiveIntensity: 0.3');
+            };
+
+            window.speechSynthesis.speak(mensaje);
         }
 
-        // Narración y Feedback Visual
-        function reproducirVoz(texto) {
-            const synth = window.speechSynthesis;
-            const utter = new SpeechSynthesisUtterance(texto);
-            utter.lang = 'es-MX';
-            utter.rate = 1.1;
+        // ==========================================
+        // LÓGICA DE COMUNICACIÓN
+       async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
 
-            utter.onstart = () => {
-                aiEye.setAttribute('material', 'emissiveIntensity: 2');
-                avatar.emit('empezar-hablar');
-            };
-            utter.onend = () => {
-                aiEye.setAttribute('material', 'emissiveIntensity: 1');
-                avatar.emit('parar-hablar');
-                avatar.setAttribute('scale', '1 1 1');
-            };
-            synth.speak(utter);
+    appendMessage('user', text);
+    userInput.value = '';
+    setLoading(true);
+
+    try {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pregunta: text })
+        });
+
+        // Verificamos si la respuesta es exitosa antes de intentar leer el JSON
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Error en la respuesta del servidor");
         }
 
+        const data = await response.json();
+        
+        // Renderizado de resultados
+        appendAIMessage(data);
+        
+        if (data.aframe_html) {
+            // Limpiamos y agregamos el nuevo contenido a la escena
+            sceneObjects.innerHTML = data.aframe_html;
+        }
+
+        if (data.narracion_voz) {
+            narrarYAnimar(data.narracion_voz);
+        }
+
+    } catch (error) {
+        console.error("Error detallado:", error);
+        appendErrorMessage(`Error de sistema: ${error.message}`);
+    } finally {
+        setLoading(false);
+        scrollToBottom();
+    }
+}
         function appendMessage(role, text) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
-            div.innerHTML = `<div class="bubble">${text}</div>`;
+            div.innerHTML = `<div class="bubble">${text.replace(/\n/g, '<br>')}</div>`;
             chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            scrollToBottom();
         }
 
         function appendAIMessage(data) {
             const div = document.createElement('div');
             div.className = 'message ai';
-            
-            let content = `<div class="ai-avatar"><i class="fa-solid fa-microchip"></i> Génesis Core</div>`;
-            content += `<div class="ai-content">${marked.parse(data.explicacion || "")}`;
-            
-            if(data.blender_python) {
-                content += `<pre><code class="language-python">${data.blender_python}</code></pre>`;
+
+            let htmlContent = `<p>${marked.parse(data.explicacion || "")}</p>`;
+            if (data.blender_python) {
+                htmlContent += `<pre><code class="language-python">${data.blender_python.trim()}</code></pre>`;
             }
-            
-            content += `</div>`;
-            div.innerHTML = content;
+
+            div.innerHTML = `
+                <div class="ai-avatar"><i class="fa-solid fa-microchip"></i> Orquestador Génesis</div>
+                <div class="ai-content">${htmlContent}</div>
+            `;
+
             chatWindow.appendChild(div);
-            div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            div.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
+            scrollToBottom();
+        }
+
+        function appendErrorMessage(msg) {
+            const div = document.createElement('div');
+            div.className = 'message ai';
+            div.innerHTML = `<div class="ai-content" style="border-left: 3px solid #ff4444; color: #ff6b6b;"><i class="fa-solid fa-triangle-exclamation"></i> ${msg}</div>`;
+            chatWindow.appendChild(div);
+            scrollToBottom();
         }
 
         function setLoading(isLoading) {
             sendBtn.disabled = isLoading;
-            spinner.style.display = isLoading ? 'block' : 'none';
             btnText.style.display = isLoading ? 'none' : 'block';
+            spinner.style.display = isLoading ? 'block' : 'none';
+            userInput.disabled = isLoading;
+            if (!isLoading) userInput.focus();
         }
 
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        function scrollToBottom() { chatWindow.scrollTop = chatWindow.scrollHeight; }
     </script>
 </body>
 </html>
 
-```
+
