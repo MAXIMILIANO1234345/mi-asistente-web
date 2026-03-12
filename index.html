@@ -183,46 +183,44 @@
         // LÓGICA DE COMUNICACIÓN
         // ==========================================
         async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+    const text = userInput.value.trim();
+    if (!text) return;
 
-            appendMessage('user', text);
-            userInput.value = '';
-            setLoading(true);
+    appendMessage('user', text);
+    userInput.value = '';
+    setLoading(true);
 
-            try {
-                const response = await fetch(API_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pregunta: text })
-                });
+    try {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pregunta: text })
+        });
 
-                if (!response.ok) throw new Error(`Error de servidor: ${response.status}`);
+        const data = await response.json();
 
-                // Ahora parseamos directo, ya que el backend garantiza un JSON puro
-                const data = await response.json();
-                
-                appendAIMessage(data);
-
-                // Inyección A-Frame con animación de entrada
-                if (data.aframe_html) {
-                    sceneObjects.innerHTML = `<a-entity scale="0 0 0" animation="property: scale; to: 1 1 1; dur: 1000; easing: easeOutElastic">${data.aframe_html}</a-entity>`;
-                }
-
-                // Disparar la narración holográfica
-                if (data.narracion_voz) {
-                    narrarYAnimar(data.narracion_voz);
-                }
-
-            } catch (error) {
-                console.error(error);
-                appendErrorMessage("Fallo en la conexión. Revisa que el servidor backend esté encendido.");
-            } finally {
-                setLoading(false);
-                scrollToBottom();
-            }
+        if (!response.ok) {
+            // Si el servidor dio 500, mostramos el detalle del error
+            throw new Error(data.detalle || "Error desconocido en el servidor");
         }
 
+        // Lógica de éxito
+        appendAIMessage(data);
+        if (data.aframe_html) {
+            sceneObjects.innerHTML = `<a-entity animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1000">${data.aframe_html}</a-entity>`;
+        }
+        if (data.narracion_voz) {
+            narrarYAnimar(data.narracion_voz);
+        }
+
+    } catch (error) {
+        console.error("Error capturado:", error);
+        appendErrorMessage(`Error: ${error.message}`);
+    } finally {
+        setLoading(false);
+        scrollToBottom();
+    }
+}
         function appendMessage(role, text) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
@@ -270,3 +268,4 @@
     </script>
 </body>
 </html>
+
