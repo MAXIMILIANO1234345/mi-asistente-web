@@ -181,8 +181,7 @@
 
         // ==========================================
         // LÓGICA DE COMUNICACIÓN
-        // ==========================================
-        async function sendMessage() {
+       async function sendMessage() {
     const text = userInput.value.trim();
     if (!text) return;
 
@@ -197,25 +196,29 @@
             body: JSON.stringify({ pregunta: text })
         });
 
-        const data = await response.json();
-
+        // Verificamos si la respuesta es exitosa antes de intentar leer el JSON
         if (!response.ok) {
-            // Si el servidor dio 500, mostramos el detalle del error
-            throw new Error(data.detalle || "Error desconocido en el servidor");
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Error en la respuesta del servidor");
         }
 
-        // Lógica de éxito
+        const data = await response.json();
+        
+        // Renderizado de resultados
         appendAIMessage(data);
+        
         if (data.aframe_html) {
-            sceneObjects.innerHTML = `<a-entity animation="property: scale; from: 0 0 0; to: 1 1 1; dur: 1000">${data.aframe_html}</a-entity>`;
+            // Limpiamos y agregamos el nuevo contenido a la escena
+            sceneObjects.innerHTML = data.aframe_html;
         }
+
         if (data.narracion_voz) {
             narrarYAnimar(data.narracion_voz);
         }
 
     } catch (error) {
-        console.error("Error capturado:", error);
-        appendErrorMessage(`Error: ${error.message}`);
+        console.error("Error detallado:", error);
+        appendErrorMessage(`Error de sistema: ${error.message}`);
     } finally {
         setLoading(false);
         scrollToBottom();
@@ -268,4 +271,5 @@
     </script>
 </body>
 </html>
+
 
