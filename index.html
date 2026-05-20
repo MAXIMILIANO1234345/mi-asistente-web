@@ -59,16 +59,17 @@
     </div>
 
     <script>
-        // 1. REEMPLAZA ESTO CON TUS CREDENCIALES DE SUPABASE
-        const supabaseUrl = 'https://euiumptpkizwiencarbt.supabase.co/rest/v1/';
+    const supabaseUrl = 'https://euiumptpkizwiencarbt.supabase.co/rest/v1/';
         const supabaseKey = 'sb_publishable_K51vKr9JCViTCTdbmZqClA_kSgN0JZ5';
-        const supabase = supabaseOrigin.createClient(supabaseUrl, supabaseKey);
+        
+        // SOLUCIÓN AL ERROR: Nombramos a la variable 'clienteSupabase' y usamos 'supabase.createClient'
+        const clienteSupabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         async function extraerDatos() {
             const btn = document.getElementById('btnEnviar');
             const msj = document.getElementById('mensaje');
             
-            // Empaquetamos todo en un JSON sin discriminar nada (Fase E pura)
+            // Empaquetamos todo en un JSON
             const payload = {
                 nombre: document.getElementById('nombre').value,
                 sueldo: document.getElementById('salario').value,
@@ -76,7 +77,6 @@
                 info_basura: document.getElementById('dato_inutil').value
             };
 
-            // Validación mínima para que no manden vacío
             if(!payload.nombre) {
                 alert("Por lo menos pon tu nombre.");
                 return;
@@ -85,8 +85,8 @@
             btn.innerText = 'Cargando...';
             btn.disabled = true;
 
-            // Inyectamos a la tabla 'landing_zone' en la columna JSON 'carga_bruta'
-            const { error } = await supabase
+            // Usamos 'clienteSupabase' para enviar los datos
+            const { error } = await clienteSupabase
                 .from('landing_zone')
                 .insert([{ carga_bruta: payload }]);
 
