@@ -3,108 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captura de Perfiles Tech (Data Lake)</title>
-    <!-- Cliente de Supabase -->
+    <title>Evaluación Técnica ELT</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Tailwind CSS para el diseño -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex justify-center items-center p-6">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex justify-center items-center p-4 font-sans">
 
-    <div class="max-w-lg w-full bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200">
-        <div class="bg-blue-800 p-6">
-            <h2 class="text-2xl font-bold text-white">Registro de Talento</h2>
-            <p class="text-blue-200 text-sm mt-1">Simulación de Extracción de Datos (Fase E)</p>
-        </div>
+    <div id="app-container" class="max-w-2xl w-full bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden relative">
+        
+        <div id="time-bar" class="h-2 bg-blue-600 w-full transition-all duration-1000 ease-linear hidden"></div>
 
-        <div class="p-8 space-y-5">
+        <div class="p-8">
             
-            <!-- DATO VALIOSO 1 -->
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
-                <input type="text" id="nombre" placeholder="Ej: sAúL burgos" 
-                    class="w-full bg-gray-50 border border-gray-300 rounded p-3 outline-none focus:border-blue-500">
+            <div id="screen-register" class="block">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-black text-white mb-2">Evaluación Técnica ELT</h1>
+                    <p class="text-gray-400 text-sm">Registro en el Data Lake</p>
+                </div>
+                
+                <div class="bg-gray-700/50 p-6 rounded-lg border border-gray-600 mb-6">
+                    <label class="block text-sm font-bold text-gray-300 mb-2">Nombre y Apellidos</label>
+                    <p class="text-xs text-blue-400 mb-4">Instrucción: Ingresa tus datos sin importar el formato (mayúsculas, minúsculas o espacios extra).</p>
+                    <input type="text" id="nombre_input" placeholder="Ej:   jUaN pÉrEz lÓpEz  " 
+                        class="w-full bg-gray-900 border border-gray-600 rounded p-4 text-white outline-none focus:border-blue-500 transition">
+                </div>
+
+                <button onclick="iniciarTrivia()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-lg transition shadow-lg">
+                    Iniciar Evaluación (Con Tiempo Límite)
+                </button>
             </div>
 
-            <!-- DATO VALIOSO 2 (Propenso a ensuciarse) -->
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Expectativa Salarial Mensual</label>
-                <input type="text" id="salario" placeholder="Ej: $15,000 mxn, 10k, quince mil..." 
-                    class="w-full bg-gray-50 border border-gray-300 rounded p-3 outline-none focus:border-blue-500">
+            <div id="screen-trivia" class="hidden">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                    <span id="question-counter" class="text-sm font-bold text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full">Pregunta 1/7</span>
+                    <span id="timer-display" class="text-xl font-black text-red-400 flex items-center">
+                        ⏳ <span id="time-left" class="ml-2">15</span>s
+                    </span>
+                </div>
+
+                <h2 id="question-text" class="text-xl font-bold text-white mb-6 leading-relaxed">¿Pregunta?</h2>
+
+                <div id="options-container" class="space-y-3">
+                    </div>
             </div>
 
-            <!-- DATO VALIOSO 3 -->
-            <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">Lenguaje de Programación Principal</label>
-                <input type="text" id="lenguaje" placeholder="Ej: Python, JS, C++" 
-                    class="w-full bg-gray-50 border border-gray-300 rounded p-3 outline-none focus:border-blue-500">
+            <div id="screen-end" class="hidden text-center py-8">
+                <div class="text-5xl mb-4">✅</div>
+                <h2 class="text-2xl font-bold text-white mb-2">Extracción y Carga Completadas</h2>
+                <p class="text-gray-400 mb-6">El paquete de datos crudos se ha inyectado en el servidor.</p>
+                <div class="bg-gray-900 p-4 rounded text-left border border-gray-700 inline-block w-full">
+                    <p class="text-sm text-green-400 font-mono mb-1">> Fases E y L ejecutadas.</p>
+                    <p class="text-sm text-gray-500 font-mono">> Esperando ejecución del motor de Transformación (T) para la depuración y cálculo de resultados.</p>
+                </div>
             </div>
 
-            <!-- DATO INÚTIL (Basura de negocio) -->
-            <div class="bg-orange-50 p-4 rounded border border-orange-200 mt-6">
-                <label class="block text-sm font-bold text-orange-900 mb-1">Comida Favorita (Dato de relleno)</label>
-                <p class="text-xs text-orange-700 mb-2">Este dato es válido, pero inútil para la empresa.</p>
-                <input type="text" id="dato_inutil" placeholder="Ej: Tacos al pastor" 
-                    class="w-full bg-white border border-orange-300 rounded p-3 outline-none focus:border-orange-500">
-            </div>
-
-            <button id="btnEnviar" onclick="extraerDatos()" 
-                class="w-full bg-blue-800 hover:bg-blue-700 text-white font-bold py-3 rounded mt-4 transition">
-                Inyectar a la Base de Datos Cruda
-            </button>
-
-            <!-- Mensaje de estado -->
-            <div id="mensaje" class="hidden text-center text-sm font-bold p-3 mt-4 rounded"></div>
         </div>
     </div>
 
     <script>
-        // 1. REEMPLAZA ESTO CON TUS CREDENCIALES DE SUPABASE
-        const supabaseUrl = 'https://euiumptpkizwiencarbt.supabase.co';
-        const supabaseKey = 'sb_publishable_K51vKr9JCViTCTdbmZqClA_kSgN0JZ5';
+        // DATOS DE LA TRIVIA
+        const triviaData = [
+            {
+                q: "¿Qué significan las siglas ELT?",
+                options: ["Extraer, Leer, Transmitir", "Extraer, Cargar, Transformar", "Ejecutar, Limpiar, Transformar"]
+            },
+            {
+                q: "En la fase de Transformación, ¿qué arquitectura se utiliza para que el motor de la base de datos distribuya las operaciones relacionales?",
+                options: ["MPP (Procesamiento Masivo en Paralelo)", "ETL Serverless", "Arquitectura de un solo nodo"]
+            },
+            {
+                q: "En el modelo ETL tradicional, ¿dónde ocurre la transformación de los datos?",
+                options: ["Directamente en el Data Warehouse de destino", "En un servidor intermedio antes de cargar al destino", "En la nube de forma automática"]
+            },
+            {
+                q: "¿Cuál es un riesgo a la calidad de los datos al usar ELT?",
+                options: ["Generar datos incompletos o duplicados por cargar sin filtrar", "El servidor intermedio colapsa por exceso de limpieza", "No se pueden extraer datos de APIs externas"]
+            },
+            {
+                q: "¿Por qué la Gobernanza y Seguridad de datos es un reto mayor en ELT?",
+                options: ["Porque es de código abierto", "Porque requiere hardware físico limitado", "Porque los datos sin procesar se almacenan completos, incluyendo información sensible"]
+            },
+            {
+                q: "¿Qué ventaja principal ofrece el modelo ELT moderno sobre el tradicional?",
+                options: ["Aprovecha el poder del destino y permite escalabilidad ilimitada en la nube", "Limpia los datos antes de cargarlos", "No requiere bases de datos"]
+            },
+            {
+                q: "¿Cómo se visualiza la integración de la Inteligencia Artificial (IA) en el futuro del ELT?",
+                options: ["Generando reportes manuales en Excel", "Corrigiendo errores automáticamente y optimizando pipelines", "Reemplazando por completo las bases de datos relacionales"]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let timeLeft = 15;
+        let timerInterval;
+        let userResponses = [];
+        let alumnoNombre = "";
         
-        // SOLUCIÓN AL ERROR: Nombramos a la variable 'clienteSupabase' y usamos 'supabase.createClient'
+        // CONFIGURACIÓN DE SUPABASE
+          const supabaseUrl = 'https://euiumptpkizwiencarbt.supabase.co';
+        const supabaseKey = 'sb_publishable_K51vKr9JCViTCTdbmZqClA_kSgN0JZ5';
         const clienteSupabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        async function extraerDatos() {
-            const btn = document.getElementById('btnEnviar');
-            const msj = document.getElementById('mensaje');
-            
-            // Empaquetamos todo en un JSON
-            const payload = {
-                nombre: document.getElementById('nombre').value,
-                sueldo: document.getElementById('salario').value,
-                tech: document.getElementById('lenguaje').value,
-                info_basura: document.getElementById('dato_inutil').value
-            };
+        // Algoritmo de Fisher-Yates para aleatorizar el orden de las respuestas
+        function shuffleArray(array) {
+            let shuffled = array.slice();
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
 
-            if(!payload.nombre) {
-                alert("Por lo menos pon tu nombre.");
+        function iniciarTrivia() {
+            const input = document.getElementById('nombre_input').value;
+            if(!input.trim()) {
+                alert("El nombre es obligatorio para el registro.");
                 return;
             }
+            alumnoNombre = input;
+            
+            document.getElementById('screen-register').style.display = 'none';
+            document.getElementById('screen-trivia').style.display = 'block';
+            document.getElementById('time-bar').style.display = 'block';
+            
+            renderQuestion();
+        }
 
-            btn.innerText = 'Cargando...';
-            btn.disabled = true;
+        function renderQuestion() {
+            timeLeft = 15;
+            document.getElementById('time-left').innerText = timeLeft;
+            document.getElementById('time-bar').style.width = '100%';
+            
+            const qData = triviaData[currentQuestion];
+            document.getElementById('question-counter').innerText = `Pregunta ${currentQuestion + 1} de ${triviaData.length}`;
+            document.getElementById('question-text').innerText = qData.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            // Aleatorizar opciones para evitar patrones de trampa
+            const shuffledOptions = shuffleArray(qData.options);
+            
+            shuffledOptions.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-gray-700 hover:bg-blue-600 text-gray-200 font-medium p-4 rounded-lg border border-gray-600 transition";
+                btn.innerText = opt;
+                // Guardamos el texto exacto de la respuesta para procesarlo en Python
+                btn.onclick = () => selectAnswer(opt);
+                optionsContainer.appendChild(btn);
+            });
 
-            // Usamos 'clienteSupabase' para enviar los datos
-            const { error } = await clienteSupabase
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time-left').innerText = timeLeft;
+                
+                const percentage = (timeLeft / 15) * 100;
+                document.getElementById('time-bar').style.width = `${percentage}%`;
+
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    selectAnswer("TIMEOUT"); 
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(respuestaSeleccionada) {
+            clearInterval(timerInterval);
+            
+            userResponses.push({
+                pregunta_id: currentQuestion,
+                respuesta_texto: respuestaSeleccionada
+            });
+
+            currentQuestion++;
+
+            if(currentQuestion < triviaData.length) {
+                renderQuestion();
+            } else {
+                finalizarYCargar();
+            }
+        }
+
+        async function finalizarYCargar() {
+            document.getElementById('screen-trivia').style.display = 'none';
+            document.getElementById('time-bar').style.display = 'none';
+            document.getElementById('screen-end').style.display = 'block';
+
+            // Paquete de datos en crudo (JSON)
+            const payload = {
+                nombre_bruto: alumnoNombre,
+                examen_respuestas: userResponses
+            };
+
+            // Inyección directa a Supabase (Fase L)
+            await clienteSupabase
                 .from('landing_zone')
                 .insert([{ carga_bruta: payload }]);
-
-            btn.innerText = 'Inyectar a la Base de Datos Cruda';
-            btn.disabled = false;
-            msj.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-800');
-
-            if (error) {
-                msj.innerText = "Error: " + error.message;
-                msj.classList.add('bg-red-100', 'text-red-700');
-            } else {
-                msj.innerText = "¡Datos extraídos y cargados exitosamente!";
-                msj.classList.add('bg-green-100', 'text-green-800');
-                
-                // Limpiar campos
-                document.querySelectorAll('input').forEach(input => input.value = '');
-            }
         }
     </script>
 </body>
